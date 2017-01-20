@@ -1,0 +1,14 @@
+{
+  "name": "zaya-challenge",
+  "version": "1.0.0",
+  "description": "Weekly/Daily challenge web interface for english duniya",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Gopal Ojha",
+  "license": "ISC",
+  "devDependencies": {
+    "express": "^4.14.0"
+  }
+}
