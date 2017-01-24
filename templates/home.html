@@ -22,30 +22,17 @@
                             <a href="#" class="list-group-item active">
                                 <i class="glyphicon glyphicon-tower"></i>
                             </a>
-                            <a ui-sref="challenge" class="list-group-item">Week 2 : Upcoming</a>
-                            <a ui-sref="challenge" class="list-group-item">Week 3 : Upcomming</a>
-                            <a ui-sref="challenge" class="list-group-item">Week 4 : Upcomming</a>
-                            <a ui-sref="challenge" class="list-group-item">Week 5 : Upcomming</a>
-                            <a ui-sref="challenge" class="list-group-item">Week 6 : Upcomming</a>
+                            <a ui-sref="challenge" class="list-group-item" ng-repeat="challenge in ::homeCtrl.challenges">
+                              <i class="glyphicon glyphicon-tower"></i>
+                              <span ng-bind="::challenge.name"></span>
+                            </a>
                         </div>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="leaderboard">
                         <div class="list-group">
-                            <a href="" class="list-group-item">
-                                <span class="badge">32045</span>
-                                1. Alia
-                            </a>
-                            <a href="" class="list-group-item">
-                                <span class="badge">23049</span>
-                                2. Heli
-                            </a>
-                            <a href="" class="list-group-item">
-                                <span class="badge">23094</span>
-                                3. Harsha
-                            </a>
-                            <a href="" class="list-group-item">
-                                <span class="badge">30894</span>
-                                5005. Gopal
+                            <a href="" class="list-group-item" ng-repeat="user in ::homeCtrl.leaderboard">
+                                <span class="badge" ng-bind="::user.points"></span>
+                                <span ng-bind="::user.rank+'. '+user.username"></span>
                             </a>
                         </div>
                     </div>

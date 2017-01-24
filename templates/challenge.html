@@ -7,7 +7,7 @@
         <h4 class="modal-title" id="myModalLabel">Modal title</h4>
       </div>
       <div class="modal-body">
-        ...
+        <p ng-bind="::challengeCtrl.prose"></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -23,19 +23,16 @@
                 <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2">Score</div>
                 <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8">Question count</div>
                 <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2">Time</div>
-                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                    Question title
-                </div>
-                <div class="col-xs-1 col-sm-1 col-md-1 col-lg-1">
-                    <button class="btn btn-primary" data-toggle="modal" data-target="#myModal">Read</button>
-                </div>
-                <div class="col-xs-11 col-sm-11 col-md-11 col-lg-11">
+                <button class="btn btn-primary" data-toggle="modal" data-target="#myModal">Read</button>
+                <div ng-show="$index == challengeCtrl.currentIndex" ng-repeat="question in ::challengeCtrl.quiz.objects">
+                  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                    <p ng-bind="::question.node.title"></p>
+                  </div>
+                  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="list-group">
-                        <a class="list-group-item">hello</a>
-                        <a class="list-group-item">hello</a>
-                        <a class="list-group-item">hello</a>
-                        <a class="list-group-item">hello</a>
+                      <a class="list-group-item" ng-bind="::option" ng-repeat="(key, option) in ::question.node.options"></a>
                     </div>
+                  </div>
                 </div>
                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <button class="btn btn-primary" ui-sref="result">Submit</button>

@@ -6,12 +6,12 @@
                     <h3>Points</h3>
                 </div>
                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                    <div class="list-group">
-                        <a class="list-group-item">1. Heli</a>
-                        <a class="list-group-item">2. Akash</a>
-                        <a class="list-group-item">3. Ankit</a>
-                        <a class="list-group-item">5001. Gopal</a>
-                    </div>
+                  <div class="list-group">
+                      <a href="" class="list-group-item" ng-repeat="user in ::resultCtrl.leaderboard">
+                          <span class="badge" ng-bind="::user.points"></span>
+                          <span ng-bind="::user.rank+'. '+user.username"></span>
+                      </a>
+                  </div>
                 </div>
                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <button class="btn btn-primary" ui-sref="home">Back</button>
