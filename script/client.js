@@ -113,8 +113,7 @@
             getChallenges: getChallenges, // user based challenge list : @input : userid
             getLeaderBoard : getLeaderBoard, // user leaderboard : @input : userid
             getQuiz : getQuiz, // get questions for the challenge : @input : quizid
-            setReport : setReport,
-            
+            setReport : setReport
         };
 
         return Rest;

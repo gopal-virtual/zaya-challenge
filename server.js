@@ -8,7 +8,7 @@ app.use(express.static(__dirname + '/script'));
 app.use(express.static(__dirname + '/assets'));
 app.use(express.static(__dirname + '/css'));
 
-var server = app.listen(4000, '0.0.0.0', function() {
+var server = app.listen(8062, 'localhost', function() {
 
     var host = server.address().address
     var port = server.address().port
