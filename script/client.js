@@ -76,6 +76,8 @@
             .getChallenges($stateParams.accountid, $stateParams.userid, $stateParams.token)
             .then(function successCallback(response) {
                 homeCtrl.challenges = response.data.objects;
+            }, function errorCallback(error){
+                console.log(error)
             })
         homeCtrl.leaderboard = Rest.getLeaderBoard();
 
