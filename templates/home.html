@@ -22,9 +22,9 @@
                             <a href="#" class="list-group-item active">
                                 <i class="glyphicon glyphicon-tower"></i>
                             </a>
-                            <a ui-sref="challenge" class="list-group-item" ng-repeat="challenge in ::homeCtrl.challenges">
+                            <a class="list-group-item" ng-repeat="challenge in ::homeCtrl.challenges" ng-click="homeCtrl.startChallenge(challenge.objects[0])">
                               <i class="glyphicon glyphicon-tower"></i>
-                              <span ng-bind="::challenge.name"></span>
+                              <span ng-bind="::challenge.node.title"></span>
                             </a>
                         </div>
                     </div>

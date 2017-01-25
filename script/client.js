@@ -22,14 +22,22 @@
         var states = [
             {
                 name: 'home',
-                url: '/',
+                url: '/:accountid/:userid/:token',
                 templateUrl: '/home.html',
                 controller : 'homeController',
                 controllerAs : 'homeCtrl'
             },
             {
+                name: 'unauthorized',
+                url: '/unauthorized',
+                templateUrl: '/unauthorized.html'
+            },
+            {
                 name: 'challenge',
                 url: '/challenge',
+                params : {
+                    quiz : null
+                },
                 templateUrl: '/challenge.html',
                 controller : 'challengeController',
                 controllerAs : 'challengeCtrl'
@@ -56,13 +64,26 @@
         .module('zayaChallenge')
         .controller('homeController', homeController);
 
-    homeController.$inject = ['Rest'];
+    homeController.$inject = ['Rest','$state', '$stateParams'];
 
     /* @ngInject */
-    function homeController(Rest) {
+    function homeController(Rest, $state, $stateParams) {
         var homeCtrl = this;
-        homeCtrl.challenges = Rest.getChallenges();
+        homeCtrl.startChallenge = startChallenge;
+
+        $stateParams.accountid && $stateParams.userid && $stateParams.token &&
+        Rest
+            .getChallenges($stateParams.accountid, $stateParams.userid, $stateParams.token)
+            .then(function successCallback(response) {
+                homeCtrl.challenges = response.data.objects;
+            })
         homeCtrl.leaderboard = Rest.getLeaderBoard();
+
+        function startChallenge(quiz){
+            $state.go('challenge',{
+                quiz : quiz
+            })
+        }
     }
 })();
 (function() {
@@ -72,14 +93,31 @@
         .module('zayaChallenge')
         .controller('challengeController', challengeController);
 
-    challengeController.$inject = ['Rest'];
+    challengeController.$inject = ['Rest','$stateParams', '$state'];
 
     /* @ngInject */
-    function challengeController(Rest) {
+    function challengeController(Rest, $stateParams, $state) {
         var challengeCtrl = this;
-        challengeCtrl.quiz = Rest.getQuiz();
+        challengeCtrl.quiz = $stateParams.quiz;
         challengeCtrl.prose = challengeCtrl.quiz.node.title;
+        challengeCtrl.submit = submit;
+        challengeCtrl.next = next;
         challengeCtrl.currentIndex = 0;
+
+        function submit() {
+            // submit points
+        }
+
+        function next(){
+            if(challengeCtrl.currentIndex < challengeCtrl.quiz.objects.length - 1){
+                ++challengeCtrl.currentIndex
+            }
+            else{
+                $state.go('result',{})
+            }
+        }
+
+        console.log(challengeCtrl.quiz)
     }
 })();
 (function() {
@@ -95,7 +133,6 @@
     function resultController(Rest) {
         var resultCtrl = this;
         resultCtrl.leaderboard = Rest.getLeaderBoard();
-
     }
 })();
 (function() {
@@ -105,14 +142,13 @@
         .module('zayaChallenge')
         .factory('Rest', Rest);
 
-    Rest.$inject = [];
+    Rest.$inject = ['$http'];
 
     /* @ngInject */
-    function Rest() {
+    function Rest($http) {
         var Rest = {
             getChallenges: getChallenges, // user based challenge list : @input : userid
             getLeaderBoard : getLeaderBoard, // user leaderboard : @input : userid
-            getQuiz : getQuiz, // get questions for the challenge : @input : quizid
             setReport : setReport
         };
 
@@ -122,105 +158,41 @@
 
         }
 
-        function getChallenges(userid) {
-          return [
-            {
-              name : '1st week',
-              questions : 10,
-              lock : false
-            },
-            {
-              name : '2nd week',
-              questions : 10,
-              lock : false
-            },
-            {
-              name : '3rd week',
-              questions : 10,
-              lock : true
-            },
-            {
-              name : '4th week',
-              questions : 10,
-              lock : true
-            },
-            {
-              name : '5th week',
-              questions : 10,
-              lock : true
-            },
-            {
-              name : '6th week',
-              questions : 10,
-              lock : true
-            }
-          ]
+        function getChallenges(userid, accountid, token) {
+          return $http({
+              method: 'GET',
+              url: 'https://cc-test-2.zaya.in/api/v1/accounts/'+accountid+'/challenges/',
+              headers: {
+               'Authorization': 'Token ' + token
+             },
+          })
+          .then(function(response){
+              return $http({
+                  method : 'GET',
+                  url : 'https://cc-test-2.zaya.in/api/v1/accounts/'+accountid+'/lessons/'+response.data[0].id+'/',
+                  headers: {
+                   'Authorization': 'Token ' + token
+                 },
+              })
+          })
         }
         function getLeaderBoard(userid){
-          return [
-            {
-              rank : 1,
-              username : 'Heli Shah',
-              points : 12343
-            },
-            {
-              rank : 2,
-              username : 'Gopal Ojha',
-              points : 12343
-            },
-            {
-              rank : 3,
-              username : 'Ayush Shah',
-              points : 12343
-            },
-            {
-              rank : 39,
-              username : 'Vaidehi Rajdhakswya',
-              points : 12343
-            }
-          ]
         }
-        function getQuiz(challengeId) {
-          return {
-            node : {
-              title : "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Debitis, ipsam quasi ipsa assumenda eius, eum magni optio molestiae reprehenderit error totam repudiandae, voluptate corporis vitae quidem praesentium libero itaque ut dolor accusantium expedita eos sunt. Maxime distinctio, in voluptatibus quam doloremque illum non! Non provident dignissimos voluptate cumque, impedit distinctio, atque repellendus sunt explicabo aut facilis ullam asperiores, veritatis neque soluta a tenetur labore excepturi quos nihil libero. Ullam rem quaerat, illum ipsum adipisci quam deleniti assumenda ad quas harum animi laboriosam dolorem eum qui aliquid iure blanditiis nam asperiores officia vel similique nisi corporis quo accusamus nihil? Possimus, at."
-            },
-            objects : [
-              {
-                node : {
-                  title : "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, eaque!",
-                  options : {
-                    a : "first answer",
-                    b : "second answer",
-                    c : "third answer",
-                    d : "fourth answer"
-                  }
-                }
-              },
-              {
-                node : {
-                  title : "Sit amet, consectetur adipisicing elit",
-                  options : {
-                    a : "first answer",
-                    b : "second answer",
-                    c : "third answer",
-                    d : "fourth answer"
-                  }
-                }
-              },
-              {
-                node : {
-                  title : "Lorem ipsum dolor Quo, eaque!",
-                  options : {
-                    a : "first answer",
-                    b : "second answer",
-                    c : "third answer",
-                    d : "fourth answer"
-                  }
-                }
-              }
-            ]
+    }
+})();
+(function(){
+  'use strict';
+  angular
+    .module('zayaChallenge')
+    .run(run);
+
+    run.$inject = ['$rootScope','$state'];
+    function run($rootScope, $state){
+        $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
+          if (toState.name == 'home' && !toParams.token){
+            event.preventDefault();
+            $state.go('unauthorized')
           }
-        }
+        });
     }
 })();

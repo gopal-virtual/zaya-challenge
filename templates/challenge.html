@@ -30,12 +30,12 @@
                   </div>
                   <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="list-group">
-                      <a class="list-group-item" ng-bind="::option" ng-repeat="(key, option) in ::question.node.options"></a>
+                      <a class="list-group-item" ng-bind="::option.option" ng-repeat="(key, option) in ::question.node.type.content.options"></a>
                     </div>
                   </div>
                 </div>
                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                    <button class="btn btn-primary" ui-sref="result">Submit</button>
+                    <button class="btn btn-primary" ng-click="challengeCtrl.submit();challengeCtrl.next()">Submit</button>
                 </div>
             </div>
         </div>
