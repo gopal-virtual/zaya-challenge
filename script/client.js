@@ -45,7 +45,15 @@
             templateUrl: '/result.html',
             controller: 'resultController',
             controllerAs: 'resultCtrl'
-        }]
+        },
+        {
+            name: 'guide',
+            url: '/guide',
+            templateUrl: '/guide.html',
+            controller: 'guideController',
+            controllerAs: 'guideCtrl'
+        }
+        ]
 
         states.forEach(function(state) {
             $stateProvider.state(state);
@@ -155,6 +163,48 @@
         $scope.mapRank = utility.mapRank;
     }
 })();
+(function() {
+    'use strict';
+
+    angular
+        .module('zayaChallenge')
+        .directive('carousel', carousel);
+
+    /* @ngInject */
+    function carousel($timeout) {
+        var carousel = {
+            restrict: 'A',
+            link: linkFunc
+        };
+
+        return carousel;
+
+        function linkFunc(scope, el, attr, ctrl) {
+            $timeout(function(){
+                el.owlCarousel({
+                    items : 1,
+                    autoplay : true,
+                    autoplayTimeout : 3000
+                });
+            })
+        }
+    }
+})();
+(function() {
+    'use strict';
+
+    angular
+        .module('zayaChallenge')
+        .controller('guideController', guideController);
+
+    guideController.$inject = [];
+
+    /* @ngInject */
+    function guideController() {
+        var guideCtrl = this;
+    }
+})();
+
 (function() {
     'use strict';
 

@@ -236,3 +236,11 @@ li.leaderboard-user .media-body > img {
     overflow-y: scroll;
     padding: 20px 10px;
 }
+.owl-carousel .slide{
+    height : 64vh;
+}
+.owl-carousel .owl-item img {
+    height: 50vh !important;
+    margin: 0 auto !important;
+    width: auto !important;
+}
