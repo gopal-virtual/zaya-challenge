@@ -1,0 +1,21 @@
+{
+  "name": "zaya-challenge",
+  "description": "Weekly/Daily challenge web interface for english duniya",
+  "main": "index.js",
+  "authors": [
+    "Gopal Ojha"
+  ],
+  "license": "ISC",
+  "moduleType": [],
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "ngMorph": "angular-morph#~0.1.0"
+  }
+}

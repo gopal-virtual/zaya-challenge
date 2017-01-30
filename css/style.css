@@ -1,0 +1,238 @@
+@font-face {
+    font-family: 'kg_primary_penmanship';
+    src: url('../kgprimarypenmanship2-webfont.eot');
+    src: url('../kgprimarypenmanship2-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../kgprimarypenmanship2-webfont.woff2') format('woff2'),
+         url('../kgprimarypenmanship2-webfont.woff') format('woff'),
+         url('../kgprimarypenmanship2-webfont.ttf') format('truetype'),
+         url('../kgprimarypenmanship2-webfont.svg#kg_primary_penmanship_2Rg') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+  font-family: 'icomoon';
+  src:  url('/icomoon.eot?7dqyh6');
+  src:  url('/icomoon.eot?7dqyh6#iefix') format('embedded-opentype'),
+    url('/icomoon.ttf?7dqyh6') format('truetype'),
+    url('/icomoon.woff?7dqyh6') format('woff'),
+    url('/icomoon.svg?7dqyh6#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.reading-comprehension {
+    height: 100vh;
+    background-color: #FCF7EE;
+    font-size : 24px;
+}
+.font-white{
+    color : white;
+}
+.font-dark-blue{
+    color : #1D80C3;
+}
+.button-float{
+    position: absolute;
+    z-index: 9999;
+    bottom: 14vh;
+    right: 10vw;
+    width: 16vw;
+    height: 16vw;
+    border-radius: 50%;
+    background-color: #0C78C2;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+}
+.icon-challenge:before {
+  content: "\e900";
+}
+.icon-leaderboard:before {
+  content: "\e901";
+}
+.font-title {
+    font-size : 34px;
+}
+body,
+p,
+span,
+div{
+    font-family: 'kg_primary_penmanship'
+}
+body{
+    background-color: #F8E8CF;
+}
+.padding-bottom{
+    padding-bottom : 20px;
+}
+.padding-top{
+    padding-top : 10px;
+}
+.padding{
+    padding : 10px;
+}
+.text-center {
+    text-align: center;
+}
+.sbtn{
+  display: inline-block;
+  border: none;
+  outline: 0;
+  background-size: cover;
+  background-position: 0 0 !important;
+  background-repeat:no-repeat;
+  width: 175px;
+  height: 56px;
+}
+.sbtn:active{
+  background-position: 100% 0 !important;
+}
+.sbtn-submit{
+  background: url('/svg/button-submit.svg');
+}
+.sbtn-next{
+  background: url('/svg/button-blue-next.svg');
+}
+.header {
+    background-color: #FCF7EE;
+    padding: 10px 0;
+    text-align: center;
+    color: #0B77C0;
+    font-size : 24px;
+}
+p.question-title {
+    padding: 10px 0;
+    color: #0C78C2;
+    font-size : 24px;
+}
+ul.option-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding : 0;
+    margin : 0;
+    list-style: none;
+}
+ul.option-group > li.option-group-item {
+    background-color: #A5CDED;
+    width: 100%;
+    margin: 6px 0;
+    padding: 10px 15px;
+    border-radius: 20px;
+    color: #0C78C2;
+    box-shadow: 0 0 0px 4px white;
+    border-bottom: 4px solid #0C78C2;
+    font-size : 24px;
+}
+.panel {
+    border : 0;
+    background-color: #A5CDED;
+    border-radius : 20px;
+    box-shadow : 0 5px 0px rgb(29,128,195);
+}
+.panel-ed > .panel-heading {
+    border : 0;
+    color : white;
+    background-color: #1D80C3;
+    border-radius : 20px 20px 0 0;
+    text-align: center;
+}
+.panel-ed > .panel-footer {
+    border : 0;
+    background-color: #A5CDED;
+    border-radius : 0 0 20px 20px;
+}
+
+ul.switch-tab {
+    display: flex;
+    list-style: none;
+    background-color: white;
+    justify-content: space-between;
+    padding: 0;
+    margin: 15px auto;
+    box-shadow: 0 0 5px black;
+    border-radius: 30px;
+}
+ul.switch-tab > li.tab.active > a{
+    color : white;
+    text-decoration: none;
+}
+ul.switch-tab > li.tab {
+    padding: 10px 25px;
+    width: 100%;
+    text-align: center;
+}
+ul.switch-tab > li.tab:first-child {
+    border-radius: 30px 0 0 30px;
+}
+ul.switch-tab > li.tab:last-child {
+    border-radius:  0 30px 30px 0;
+}
+ul.switch-tab > li.tab.active {
+    background-color: #1d80c3;
+    border-radius: 30px;
+}
+ul.leaderboard {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+    align-content: stretch;
+}
+ul.leaderboard > li.leaderboard-user {
+    margin: 5px 0;
+    padding: 10px 15px;
+    border-radius: 30px;
+    color : white;
+    text-transform: capitalize;
+}
+ul.leaderboard > li.leaderboard-user.rank-one{
+    background-color: #FABC29;
+}
+ul.leaderboard > li.leaderboard-user.rank-second{
+    background-color: #FE842F;
+}
+ul.leaderboard > li.leaderboard-user.rank-third{
+    background-color: #EF4A2E;
+}
+ul.leaderboard > li.leaderboard-user.rank-none{
+    background-color: #41A3DB;
+}
+li.leaderboard-user .media-object {
+    height: 45px;
+}
+li.leaderboard-user .media-body > img {
+    margin-top: 10px;
+    margin-right: 10px;
+}
+.progress {
+    border-radius: 12.5px;
+    border: 2px solid white;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    background-color: #FCF7EE;
+    height: 25px;
+}
+.progress > .progress-bar {
+    border-radius: 12.5px;
+}
+.scroll{
+    height: 85vh;
+    overflow-y: scroll;
+    padding: 20px 10px;
+}
