@@ -1,16 +1,16 @@
 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
     <ul class="leaderboard">
-        <li class="leaderboard-user" ng-class="::mapRank(rank)" ng-repeat="(rank, user) in ::leaderboard">
+        <li class="leaderboard-user" ng-class="::mapRank(user.rank)" ng-repeat="user in ::leaderboard.leaderboard">
             <div class="media">
                 <div class="media-left media-middle">
                     <a href="#">
-                        <img class="media-object" ng-src="{{::'/svg/'+mapRank(rank)+'.svg'}}" alt="">
+                        <img class="media-object" ng-src="{{::'/svg/'+mapRank(user.rank)+'.svg'}}" alt="">
                     </a>
                 </div>
                 <div class="media-body">
                     <img class="pull-right" src="/svg/icon-share.svg" alt="">
-                    <h3 class="media-heading" ng-bind="::user.username"></h3>
-                    <span ng-bind="::user.points+' points'"></span>
+                    <h3 class="media-heading" ng-bind="::user.profile_name"></h3>
+                    <span ng-bind="::user.total_score+' points'"></span>
                 </div>
             </div>
         </li>

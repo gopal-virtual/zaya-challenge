@@ -4,7 +4,8 @@
     angular
         .module('zayaChallenge', [
             'ui.router',
-            'ngMorph'
+            'ngMorph',
+            'ngSanitize'
         ]);
 })();
 
@@ -34,7 +35,9 @@
             name: 'challenge',
             url: '/challenge',
             params: {
-                quiz: null
+                quiz: null,
+                userid : null,
+                token : null
             },
             templateUrl: '/challenge.html',
             controller: 'challengeController',
@@ -42,6 +45,13 @@
         }, {
             name: 'result',
             url: '/result',
+            params : {
+              score : null,
+              time : null,
+              userid : null,
+              quizid : null,
+              token : null
+            },
             templateUrl: '/result.html',
             controller: 'resultController',
             controllerAs: 'resultCtrl'
@@ -84,12 +94,20 @@
                 console.log(error)
             })
 
-        $scope.leaderboard = Rest.getLeaderBoard();
+        Rest.getLeaderBoard($stateParams.userid, $stateParams.token)
+        .then(function successCallback(response){
+          $scope.leaderboard = response.data;
+          console.log(response);
+        },function errorCallback(error){
+          console.log(error)
+        })
         $scope.mapRank = utility.mapRank;
 
         function startChallenge(quiz) {
             $state.go('challenge', {
-                quiz: quiz
+                quiz: quiz,
+                userid : $stateParams.userid,
+                token : $stateParams.token
             })
         }
     }
@@ -108,19 +126,37 @@
         var challengeCtrl = this;
         challengeCtrl.quiz = $stateParams.quiz;
         challengeCtrl.prose = challengeCtrl.quiz.node.title;
+        $scope.prose = challengeCtrl.prose;
         challengeCtrl.submit = submit;
         challengeCtrl.next = next;
         challengeCtrl.currentIndex = 0;
+        challengeCtrl.result = {};
+        challengeCtrl.selectOption = selectOption;
+        challengeCtrl.calculateScore = calculateScore;
+        challengeCtrl.score = 0;
+        challengeCtrl.getElapsedTime = getElapsedTime;
+
+        function selectOption(key) {
+          challengeCtrl.quiz.objects[challengeCtrl.currentIndex]['selected'] = key;
+        }
+
+        function getElapsedTime (onlyMinutes){
+          var timeElapsed = ~~(challengeCtrl.time - challengeCtrl.startTime)/1000;
+          var seconds = timeElapsed % 60;
+          var minutes = (timeElapsed - seconds)/60;
+          return onlyMinutes ? minutes : minutes + ":" + seconds;
+        }
 
         $scope.settings = {
             closeEl: '.close',
-		    overlay: {
-		      templateUrl: '/reading-comprehension.html'
-		    }
+    		    overlay: {
+    		      templateUrl: '/reading-comprehension.html'
+    		    }
         }
 
         var interval = 1000; // ms
-        challengeCtrl.time = Date.now() + interval;
+        challengeCtrl.startTime = Date.now();
+        challengeCtrl.time = challengeCtrl.startTime + interval;
         $timeout(step, interval);
 
         function step() {
@@ -133,14 +169,33 @@
         }
 
         function submit() {
-            // submit points
+          var question = challengeCtrl.quiz.objects[challengeCtrl.currentIndex];
+          challengeCtrl.result[question.node.id] = question.selected == question.node.type.answer[0] ? true : false;
+          challengeCtrl.calculateScore()
+        }
+
+        function calculateScore(){
+          var score = 0;
+          for (var key in challengeCtrl.result) {
+            if (challengeCtrl.result.hasOwnProperty(key)) {
+              if(challengeCtrl.result[key])
+                score += 100;
+            }
+          }
+          challengeCtrl.score = score;
         }
 
         function next() {
             if (challengeCtrl.currentIndex < challengeCtrl.quiz.objects.length - 1) {
                 ++challengeCtrl.currentIndex
             } else {
-                $state.go('result', {})
+                $state.go('result', {
+                  score : challengeCtrl.score,
+                  time : challengeCtrl.getElapsedTime(true),
+                  userid : $stateParams.userid,
+                  quizid : challengeCtrl.quiz.node.id,
+                  token : $stateParams.token
+                })
             }
         }
 
@@ -154,12 +209,28 @@
         .module('zayaChallenge')
         .controller('resultController', resultController);
 
-    resultController.$inject = ['Rest', '$scope', 'utility'];
+    resultController.$inject = ['Rest', '$scope', 'utility', '$stateParams'];
 
     /* @ngInject */
-    function resultController(Rest, $scope, utility) {
+    function resultController(Rest, $scope, utility, $stateParams) {
         var resultCtrl = this;
-        $scope.leaderboard = Rest.getLeaderBoard();
+        console.log($stateParams)
+        resultCtrl.points = $stateParams.score - $stateParams.time * 10;
+        Rest.sendReport($stateParams.userid, $stateParams.token, {
+      		"action":"quiz_complete",
+      		"score": resultCtrl.points,
+      		"content_type":"node",
+      		"object_id": $stateParams.quizid,
+      	})
+        .then(function successCallback(response){
+          return Rest.getLeaderBoard($stateParams.userid, $stateParams.token)
+        })
+        .then(function successCallback(response){
+          $scope.leaderboard = response.data;
+          console.log(response);
+        },function errorCallback(error){
+          console.log(error)
+        })
         $scope.mapRank = utility.mapRank;
     }
 })();
@@ -249,13 +320,20 @@
         var Rest = {
             getChallenges: getChallenges, // user based challenge list : @input : userid
             getLeaderBoard: getLeaderBoard, // user leaderboard : @input : userid
-            setReport: setReport
+            sendReport: sendReport
         };
 
         return Rest;
 
-        function setReport(report) {
-
+        function sendReport(profile_id, token, report) {
+          return $http({
+            method : 'POST',
+            url : 'https://cc-test-2.zaya.in/api/v1/profiles/'+profile_id+'/points/',
+            headers: {
+                'Authorization': 'Token ' + token
+            },
+            data : report
+          })
         }
 
         function getChallenges(userid, accountid, token) {
@@ -277,29 +355,14 @@
                 })
         }
 
-        function getLeaderBoard(userid) {
-            return {
-                1: {
-                    userid: 23094,
-                    username: 'heli',
-                    points: 342
-                },
-                2: {
-                    userid: 20394,
-                    username: 'gopal',
-                    points: 312
-                },
-                3: {
-                    userid: 2342423,
-                    username: 'ayush',
-                    points: 234
-                },
-                334: {
-                    userid: 23423,
-                    username: 'Kartik',
-                    points: 23
-                }
-            }
+        function getLeaderBoard(userid, token) {
+            return $http({
+              method : 'GET',
+              headers : {
+                'Authorization' : 'Token ' + token
+              },
+              url : 'https://cc-test-2.zaya.in/api/v1/profiles/'+userid+'/leaderboard/'
+            })
         }
     }
 })();
@@ -318,6 +381,10 @@
                 $state.go('unauthorized')
             }
             if (toState.name == 'challenge' && !toParams.quiz) {
+                event.preventDefault();
+                $state.go('home')
+            }
+            if (toState.name == 'result' && !toParams.userid) {
                 event.preventDefault();
                 $state.go('home')
             }

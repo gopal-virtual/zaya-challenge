@@ -139,6 +139,11 @@ ul.option-group > li.option-group-item {
     border-bottom: 4px solid #0C78C2;
     font-size : 24px;
 }
+ul.option-group > li.option-group-item.selected {
+    background-color: #FFBC1D;
+    border-bottom: 4px solid #cf9816;
+    color : white;
+}
 .panel {
     border : 0;
     background-color: #A5CDED;

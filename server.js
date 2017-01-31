@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 app.get('/', home);
+app.get('/points', points);
 
 app.use(express.static(__dirname + '/node_modules'));
 app.use(express.static(__dirname + '/bower_components'));
@@ -21,4 +22,7 @@ var server = app.listen(8062, 'localhost', function() {
 
 function home(req, res) {
     res.sendFile(__dirname + "/index.html");
+}
+function points(){
+
 }

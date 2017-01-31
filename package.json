@@ -9,6 +9,7 @@
   "author": "Gopal Ojha",
   "license": "ISC",
   "devDependencies": {
+    "angular-sanitize": "^1.6.1",
     "express": "^4.14.0"
   },
   "dependencies": {
