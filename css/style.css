@@ -249,3 +249,6 @@ li.leaderboard-user .media-body > img {
     margin: 0 auto !important;
     width: auto !important;
 }
+.owl-theme .owl-dots .owl-dot.active span, .owl-theme .owl-dots .owl-dot:hover span {
+    background: #1D80C3 !important;
+}

@@ -338,21 +338,16 @@
 
         function getChallenges(userid, accountid, token) {
             return $http({
-                    method: 'GET',
-                    url: 'https://cc-test-2.zaya.in/api/v1/accounts/' + accountid + '/challenges/',
-                    headers: {
-                        'Authorization': 'Token ' + token
-                    },
-                })
-                .then(function(response) {
-                    return $http({
-                        method: 'GET',
-                        url: 'https://cc-test-2.zaya.in/api/v1/accounts/' + accountid + '/lessons/' + response.data[0].id + '/',
-                        headers: {
-                            'Authorization': 'Token ' + token
-                        },
-                    })
-                })
+                method : 'GET',
+                url : 'https//challenge.zaya.in/get/challenges',
+                headers : {
+                    'Authorization' : 'Token ' + token
+                },
+                params : {
+                    account : accountid,
+                    profile : userid
+                }
+            })
         }
 
         function getLeaderBoard(userid, token) {
