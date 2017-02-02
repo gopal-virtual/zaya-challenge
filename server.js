@@ -15,32 +15,6 @@ app.use(express.static(__dirname + '/assets'));
 app.use(express.static(__dirname + '/font'));
 app.use(express.static(__dirname + '/css'));
 
-var range = {
-	0 : {
-		start : new Date('2017-01-30'),
-		end : new Date('2017-03-12')
-	},
-	1 : {
-		start : new Date('2017-02-06'),
-		end : new Date('2017-03-12')
-	},
-	2 : {
-		start : new Date('2017-02-13'),
-		end : new Date('2017-03-12')
-	},
-	3 : {
-		start : new Date('2017-02-20'),
-		end : new Date('2017-03-12')
-	},
-	4 : {
-		start : new Date('2017-02-27'),	
-		end : new Date('2017-03-12')
-	},
-	5 : {
-		start : new Date('2017-03-06'),
-		end : new Date('2017-03-12')
-	}
-}
 
 var locked_threshold = 2;
 
@@ -191,81 +165,135 @@ function getChallenges (req, res) {
 
 
 function calculate(quizList, pointList, current_date) {
-	var accumulatedNodes = 0;
 	var current_date = current_date || new Date();
 	var totalPoints;
 	var totalNodes;
-	
+	var currentIndex;
+
 	quizList.forEach(function(quiz, index){
-		accumulatedNodes += totalNodes;
 		totalNodes = 0;
 		totalPoints = 0;
 		var start_date = range[index].start;
-		var end_date = range[index+1].start || range[index].end;
+		var end_date = (range[index+1] && range[index+1].start) || (range[index].end);
+
+		// find current week
+		if(current_date >= start_date && current_date < end_date){
+			currentIndex = index;
+		}
+
+
+		// get points in that date range
 		pointList.forEach(function(dataPoints){
 			if(new Date(dataPoints.created) >= start_date && new Date(dataPoints.created) < end_date){
 				totalPoints += dataPoints.score;
 				totalNodes += dataPoints.action == 'node_complete' ? 1 : 0;
 			}
 		})
+
+
 		quiz['total_nodes_consumed'] = totalNodes;
 		quiz['total_points_earned'] = totalPoints;
-		quiz['accumulatedNodes'] = accumulatedNodes;
-	})
-	quizList.forEach(function(quiz, index, quizList){
 
-		var start_date = range[index].start;
-		var end_date = range[index+1].start || range[index].end;
-		if(current_date >= start_date && current_date < end_date){
-			quiz['locked'] = quiz.total_nodes_consumed < locked_threshold ? true : false;
+		// lock node
+		quiz['locked'] = quiz.total_nodes_consumed < locked_threshold ? true : false;
+	})
+
+	// traverse back from currentIndex and change lock value by adding extra points accumulated from the current node
+	// find sum
+	var sum = 0;
+	sum += quizList[currentIndex].total_nodes_consumed > 2 ? quizList[currentIndex].total_nodes_consumed - 2 : 0;
+	for (var i = currentIndex-1; i >= 0; i--) {
+		if(quizList[i].total_nodes_consumed - locked_threshold > 0)
+		sum += quizList[i].total_nodes_consumed - locked_threshold;
+	}
+
+	// traverse down and add node
+	for (var c = 0; c < currentIndex; c++) {
+		console.log('before :',sum)
+		if(quizList[c].locked && (sum - (locked_threshold - quizList[c].total_nodes_consumed)) >= 0){
+			quizList[c].locked = false;
+			sum = sum - (locked_threshold - quizList[c].total_nodes_consumed);
 		}
-		else if(current_date > end_date){
-			if(quizList[index+1]){
-				// console.log(quizList[index+1].accumulatedNodes >= locked_threshold*(index+1))
-				quiz['locked'] = quizList[index+1].accumulatedNodes >= locked_threshold*(index+1) ? false : true;
-			}
-			else{
-				quiz['locked'] = quiz.total_nodes_consumed < locked_threshold ? true : false;		
-			}
-		}
-		else{
-			quiz['locked'] = true;
-		}
-		console.log(quiz.total_nodes_consumed, quiz.total_points_earned, quiz.locked)
+		console.log('after :',sum)
+	}
+
+	for (var x = currentIndex + 1; x < quizList.length; x++) {
+		quizList[x].locked = true;
+	}
+
+	// print
+	quizList.forEach(function(quiz, index){
+		console.log(index, JSON.stringify(quiz))
+		if(index == currentIndex)
+			console.log('^')
 	})
 }
 
+var range = {
+	0 : {
+		start : new Date('2017-01-30'),
+		end : new Date('2017-03-12')
+	},
+	1 : {
+		start : new Date('2017-02-06'),
+		end : new Date('2017-03-12')
+	},
+	2 : {
+		start : new Date('2017-02-13'),
+		end : new Date('2017-03-12')
+	},
+	3 : {
+		start : new Date('2017-02-20'),
+		end : new Date('2017-03-12')
+	},
+	4 : {
+		start : new Date('2017-02-27'),	
+		end : new Date('2017-03-12')
+	},
+	5 : {
+		start : new Date('2017-03-06'),
+		end : new Date('2017-03-12')
+	}
+}
 
 function test(){
-	currentDate1 = new Date('2017-02-10T08:10:39.923746Z');
-	quizList1 = [{},{},{},{},{}];
+	currentDate1 = new Date('2017-03-06T08:10:39.923746Z');
+	quizList1 = [{},{},{},{},{},{}];
 	pointList1 = [
 		{
 			created : '2017-02-03T08:10:39.923746Z',
 			score : 10,
 			action : 'node_complete'
 		},{
-			created : '2017-02-10T08:10:39.923746Z',
+			created : '2017-02-07T08:10:39.923746Z',
 			score : 20,
 			action : 'node_complete'
 		},{
-			created : '2017-02-20T08:10:39.923746Z',
+			created : '2017-02-21T08:10:39.923746Z',
 			score : 200,
 			action : 'node_complete'
 		},{
-			created : '2017-02-10T08:10:39.923746Z',
-			score : 0,
-			action : 'node_complete'
-		},{
-			created : '2017-03-30T08:10:39.923746Z',
+			created : '2017-02-21T08:10:39.923746Z',
 			score : 150,
 			action : 'node_complete',
 		},{
-			created : '2017-03-30T08:10:39.923746Z',
-			score : 550,
-			action : 'node_complete',
+			created : '2017-02-27T08:10:39.923746Z',
+			score : 890,
+			action : 'node_complete'
 		},{
-			created : '2017-04-30T08:10:39.923746Z',
+			created : '2017-02-28T08:10:39.923746Z',
+			score : 890,
+			action : 'node_complete'
+		},{
+			created : '2017-02-28T08:10:39.923746Z',
+			score : 890,
+			action : 'node_complete'
+		},{
+			created : '2017-03-06T08:10:39.923746Z',
+			score : 890,
+			action : 'node_complete'
+		},{
+			created : '2017-03-06T08:10:39.923746Z',
 			score : 890,
 			action : 'node_complete'
 		}
