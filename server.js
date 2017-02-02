@@ -42,6 +42,8 @@ var range = {
 	}
 }
 
+var locked_threshold = 2;
+
 var server = app.listen(8062, 'localhost', function() {
 
     var host = server.address().address
@@ -98,16 +100,17 @@ function getChallenges (req, res) {
 				Authorization : token
 			}
 		};
-		request(config, function(error, response, body){
-			if(error){
-		        callback('error');
-			}
-			else {
-				var challenges = JSON.parse(body)
-				var challengeId = challenges[0].id;
-		        callback(null, challengeId);
-			}
-		})
+		// request(config, function(error, response, body){
+		// 	if(error){
+		//         callback('error');
+		// 	}
+		// 	else {
+		// 		var challenges = JSON.parse(body)
+		// 		var challengeId = challenges[0].id;
+		//         callback(null, challengeId);
+		// 	}
+		// })
+        callback && callback(null, '5f4c3be1-837d-4955-8daf-6d9f216af021');
     }
 
     function getQuizList(challengeId, callback) {
@@ -118,19 +121,19 @@ function getChallenges (req, res) {
 				Authorization : token
 			}
 		};
-        request(config, function(error, response, body){
-        	if(error){
-        		callback('error')
-        	}
-        	else {
-        		// body = JSON.parse(body).objects;
-        		// callback(null, body)
-
-        		fs.readFile('quiz.json', 'utf8', function(err, data) {
-        			callback(null, JSON.parse(data));
-        		})
-        	}
+		fs.readFile('quiz.json', 'utf8', function(err, data) {
+			callback && callback(null, JSON.parse(data));
 		})
+  //       request(config, function(error, response, body){
+  //       	if(error){
+  //       		callback('error')
+  //       	}
+  //       	else {
+  //       		body = JSON.parse(body).objects;
+  //       		callback(null, body)
+
+  //       	}
+		// })
     }
 
     function getFilteredQuizList (quizList, callback) {
@@ -141,42 +144,135 @@ function getChallenges (req, res) {
 				Authorization : token
 			}
 		}
-		request(config, function(error, response, body){
-			if(error){
-				callback('error')
-			}
-			else{
-				// var
-				// var points = {
-				// 	week1 : {
-				// 		node_count : 0,
-				// 		points : 0
-				// 	}
-				// }
-				fs.readFile('points.json', 'utf8', function(err, data) {
-					data = JSON.parse(data);
-					// logic for extracting data
-					quizList.forEach(function(quiz, index){
-						var totalPoints = 0;
-						var totalNodes = 0;
-						data.forEach(function(dataPoints){
-							// console.log(new Date(dataPoints.created), new Date(quiz.created), range[index].end)
-							if(new Date(dataPoints.created) >= new Date(quiz.created) && new Date(dataPoints.created) < range[index].end){
-								console.log('true')
-								totalPoints += dataPoints.score;
-								totalNodes++;
-							}
-						})
-						console.log(totalPoints, totalNodes)
-					})
-					// end : logic for extracting data
+		fs.readFile('points.json', 'utf8', function(err, data) {
+			data = JSON.parse(data);
+			// logic for extracting data
+			var accumulatedNodes = 0;
+			var current_date = new Date();
+			quizList.forEach(function(quiz, index){
+				var totalPoints = 0;
+				var totalNodes = 0;
+				var start_date = range[index].start;
+				var end_date = range[index+1].start || range[index].end;
+				data.forEach(function(dataPoints){
+					if(new Date(dataPoints.created) >= start_date && new Date(dataPoints.created) < end_date){
+						totalPoints += dataPoints.score;
+						totalNodes += dataPoints.action == 'node_complete' ? 1 : 0;
+						accumulatedNodes = totalNodes;
+					}
+				})
+				quiz['total_nodes_consumed'] = totalNodes;
+				quiz['total_points_earned'] = totalPoints;
+				if(current_date >= start_date && current_date < end_date){
+					quiz['locked'] = totalNodes < locked_threshold ? true : false;
+				}
+				else if(current_date > end_date){
+					quiz['locked'] = accumulatedNodes < locked_threshold*(index+1) ? true : false;
+				}
+				console.log(quiz.total_nodes_consumed, quiz.total_points_earned, quiz.locked)
+			})
+			// end : logic for extracting data
+			callback && callback(null, JSON.stringify(data))
 
-				});
-				// callback(null, body)
-			}
-		})
-		callback(null, JSON.stringify(quizList))
+		});
+		// request(config, function(error, response, body){
+		// 	if(error){
+		// 		callback('error')
+		// 	}
+		// 	else{
+		// 		callback(null, body)
+		// 	}
+		// })
+		// callback(null, JSON.stringify(quizList))
 
 	}
 
 }
+
+
+function calculate(quizList, pointList, current_date) {
+	var accumulatedNodes = 0;
+	var current_date = current_date || new Date();
+	var totalPoints;
+	var totalNodes;
+	
+	quizList.forEach(function(quiz, index){
+		accumulatedNodes += totalNodes;
+		totalNodes = 0;
+		totalPoints = 0;
+		var start_date = range[index].start;
+		var end_date = range[index+1].start || range[index].end;
+		pointList.forEach(function(dataPoints){
+			if(new Date(dataPoints.created) >= start_date && new Date(dataPoints.created) < end_date){
+				totalPoints += dataPoints.score;
+				totalNodes += dataPoints.action == 'node_complete' ? 1 : 0;
+			}
+		})
+		quiz['total_nodes_consumed'] = totalNodes;
+		quiz['total_points_earned'] = totalPoints;
+		quiz['accumulatedNodes'] = accumulatedNodes;
+	})
+	quizList.forEach(function(quiz, index, quizList){
+
+		var start_date = range[index].start;
+		var end_date = range[index+1].start || range[index].end;
+		if(current_date >= start_date && current_date < end_date){
+			quiz['locked'] = quiz.total_nodes_consumed < locked_threshold ? true : false;
+		}
+		else if(current_date > end_date){
+			if(quizList[index+1]){
+				// console.log(quizList[index+1].accumulatedNodes >= locked_threshold*(index+1))
+				quiz['locked'] = quizList[index+1].accumulatedNodes >= locked_threshold*(index+1) ? false : true;
+			}
+			else{
+				quiz['locked'] = quiz.total_nodes_consumed < locked_threshold ? true : false;		
+			}
+		}
+		else{
+			quiz['locked'] = true;
+		}
+		console.log(quiz.total_nodes_consumed, quiz.total_points_earned, quiz.locked)
+	})
+}
+
+
+function test(){
+	currentDate1 = new Date('2017-02-10T08:10:39.923746Z');
+	quizList1 = [{},{},{},{},{}];
+	pointList1 = [
+		{
+			created : '2017-02-03T08:10:39.923746Z',
+			score : 10,
+			action : 'node_complete'
+		},{
+			created : '2017-02-10T08:10:39.923746Z',
+			score : 20,
+			action : 'node_complete'
+		},{
+			created : '2017-02-20T08:10:39.923746Z',
+			score : 200,
+			action : 'node_complete'
+		},{
+			created : '2017-02-10T08:10:39.923746Z',
+			score : 0,
+			action : 'node_complete'
+		},{
+			created : '2017-03-30T08:10:39.923746Z',
+			score : 150,
+			action : 'node_complete',
+		},{
+			created : '2017-03-30T08:10:39.923746Z',
+			score : 550,
+			action : 'node_complete',
+		},{
+			created : '2017-04-30T08:10:39.923746Z',
+			score : 890,
+			action : 'node_complete'
+		}
+	]
+	calculate(quizList1, pointList1, currentDate1);
+	// calculate(quizList2, currentDate2, data2);
+	// calculate(quizList3, currentDate3, data3);
+}
+
+test();
