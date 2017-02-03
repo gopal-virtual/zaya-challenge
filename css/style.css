@@ -107,6 +107,11 @@ body{
 .sbtn-next{
   background: url('/svg/button-blue-next.svg');
 }
+.sbtn-quiz{
+  background: url('/svg/button-quiz.svg');
+  width: 156px;
+  height: 50px;
+}
 .header {
     background-color: #FCF7EE;
     padding: 10px 0;
@@ -146,18 +151,32 @@ ul.option-group > li.option-group-item.selected {
 }
 .panel {
     border : 0;
-    background-color: #A5CDED;
     border-radius : 20px;
+}
+.panel.panel-ed{
+    background-color: #A5CDED;
     box-shadow : 0 5px 0px rgb(29,128,195);
 }
-.panel-ed > .panel-heading {
+.panel.panel-ed.inactive{
+    background-color: #CDCED0;
+    box-shadow : 0 5px 0px #929294;
+}
+.panel-ed.inactive .panel-heading {
+    color : white;
+}
+.panel-ed.inactive .panel-footer {
+    color : white;
+    background-color: transparent;
+    border : 0;
+}
+.panel-ed:not(.inactive) .panel-heading {
     border : 0;
     color : white;
     background-color: #1D80C3;
     border-radius : 20px 20px 0 0;
     text-align: center;
 }
-.panel-ed > .panel-footer {
+.panel-ed:not(.inactive) .panel-footer {
     border : 0;
     background-color: #A5CDED;
     border-radius : 0 0 20px 20px;
@@ -235,6 +254,8 @@ li.leaderboard-user .media-body > img {
 }
 .progress > .progress-bar {
     border-radius: 12.5px;
+    font-size: 20px;
+    line-height: 25px;
 }
 .scroll{
     height: 85vh;

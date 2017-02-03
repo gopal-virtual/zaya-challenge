@@ -84,12 +84,13 @@
     function homeController(Rest, $state, $stateParams, utility, $scope) {
         var homeCtrl = this;
         homeCtrl.startChallenge = startChallenge;
+        homeCtrl.getProgress = getProgress;
 
         $stateParams.accountid && $stateParams.userid && $stateParams.token &&
             Rest
             .getChallenges($stateParams.accountid, $stateParams.userid, $stateParams.token)
             .then(function successCallback(response) {
-                homeCtrl.challenges = response.data.objects;
+                homeCtrl.challenges = response.data;
             }, function errorCallback(error) {
                 console.log(error)
             })
@@ -109,6 +110,15 @@
                 userid : $stateParams.userid,
                 token : $stateParams.token
             })
+        }
+
+        function getProgress(nodes, threshold){
+            if(nodes > threshold){
+                return '100';
+            }
+            else{
+                return (( nodes / threshold ) * 100).toString();
+            }
         }
     }
 })();
@@ -336,10 +346,10 @@
           })
         }
 
-        function getChallenges(userid, accountid, token) {
+        function getChallenges(accountid, userid, token) {
             return $http({
                 method : 'GET',
-                url : 'https//challenge.zaya.in/get/challenges',
+                url : '/get/challenges',
                 headers : {
                     'Authorization' : 'Token ' + token
                 },

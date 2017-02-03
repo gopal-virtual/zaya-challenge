@@ -15,50 +15,68 @@
                         </a>
                     </li>
                 </ul>
-
                 <!-- Tab panes -->
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane active" id="challenge">
-                        <div class="panel panel-ed" ng-repeat="challenge in ::homeCtrl.challenges">
-                            <div class="panel-heading">
-                                <h2 ng-bind="::challenge.node.title"></h2>
-                            </div>
-                            <div class="panel-body">
-                                <div class="media">
-                                    <div class="media-left">
-                                        <a href="#">
-                                            <!-- <img class="media-object" src="..." alt="..."> -->
-                                            <i class="media-object glyphicon glyphicon-ok-sign"></i>
-                                        </a>
-                                    </div>
-                                    <div class="media-body">
-                                        <h3 class="media-heading font-dark-blue">Complete 10 lessons</h3>
-                                        <div class="progress">
-                                            <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%">
-                                                <span class="sr-only">40% Complete (success)</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="media">
-                                    <div class="media-left">
-                                        <a href="#">
-                                            <!-- <img class="media-object" src="..." alt="..."> -->
-                                            <i class="media-object glyphicon glyphicon-ok-sign"></i>
-                                        </a>
-                                    </div>
-                                    <div class="media-body">
-                                        <h3 class="media-heading font-dark-blue">Solve 10 questions</h3>
-                                        <div class="progress">
-                                            <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 20%">
-                                                <span class="sr-only">40% Complete (success)</span>
-                                            </div>
-                                        </div>
+                        <div ng-repeat="challenge in ::homeCtrl.challenges">
+                            <div ng-if="challenge.meta.active && !challenge.meta.current">
+                                <div class="panel panel-ed">
+                                    <div class="panel-heading">
+                                        <h2>
+                                            {{:: challenge.node.title}}
+                                            {{:: challenge.meta.total_points_earned}}
+                                        </h2>
                                     </div>
                                 </div>
                             </div>
-                            <div class="panel-footer text-center">
-                                <button class="sbtn sbtn-next" ng-click="homeCtrl.startChallenge(challenge.objects[0])"></button>
+                            <div ng-if="challenge.meta.active && challenge.meta.current">
+                                <div class="panel panel-ed">
+                                    <div class="panel-heading">
+                                        <h2>
+                                            {{:: challenge.node.title}}
+                                            {{:: challenge.meta.total_points_earned}}
+                                        </h2>
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class="media">
+                                            <div class="media-left">
+                                                <a href="#">
+                                                    <!-- <img class="media-object" src="..." alt="..."> -->
+                                                    <i class="media-object glyphicon glyphicon-ok-sign"></i>
+                                                </a>
+                                            </div>
+                                            <div class="media-body">
+                                                <h3 class="media-heading font-dark-blue" ng-bind="::'Goal : Complete '+challenge.meta.threshold+' lessons'"></h3>
+                                                <div class="progress">
+                                                    <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{::homeCtrl.getProgress(challenge.meta.total_nodes_consumed, challenge.meta.threshold)}}" aria-valuemin="0" aria-valuemax="100" style="width: {{::homeCtrl.getProgress(challenge.meta.total_nodes_consumed, challenge.meta.threshold)}}%">
+                                                        {{::challenge.meta.total_nodes_consumed}}
+                                                        <span class="sr-only">{{::homeCtrl.getProgress(challenge.meta.total_nodes_consumed, challenge.meta.threshold)}}% Complete (success)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- <div class="media">
+                                            <div class="media-left">
+                                                <a href="#">
+                                                    <i class="media-object glyphicon glyphicon-ok-sign"></i>
+                                                </a>
+                                            </div>
+                                            <div class="media-body">
+                                                <h3 class="media-heading font-dark-blue" ng-bind="::'Solve '+challenge.meta.total_questions+' questions'"></h3>
+                                            </div>
+                                        </div> -->
+                                    </div>
+                                    <div class="panel-footer text-center" ng-show="!challenge.meta.locked">
+                                        <button class="sbtn sbtn-quiz" ng-click="homeCtrl.startChallenge(challenge.objects[0])"></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div ng-if="!challenge.meta.active">
+                                <div class="panel panel-ed inactive">
+                                    <div class="panel-heading">
+                                        <h2 ng-bind="::challenge.node.title"></h2>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
