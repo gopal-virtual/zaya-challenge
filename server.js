@@ -95,19 +95,19 @@ function getChallenges (req, res) {
 				Authorization : token
 			}
 		};
-		fs.readFile('quiz.json', 'utf8', function(err, data) {
-			callback && callback(null, JSON.parse(data));
-		})
-  //       request(config, function(error, response, body){
-  //       	if(error){
-  //       		callback('error')
-  //       	}
-  //       	else {
-  //       		body = JSON.parse(body).objects;
-  //       		callback(null, body)
-
-  //       	}
+		//test from local file
+		// fs.readFile('quiz.json', 'utf8', function(err, data) {
+		// 	callback && callback(null, JSON.parse(data));
 		// })
+        request(config, function(error, response, quizList){
+        	if(error){
+        		callback('error')
+        	}
+        	else {
+        		quizList = JSON.parse(quizList).objects;
+        		callback(null, JSON.stringify(quizList))
+        	}
+		})
     }
 
     function getFilteredQuizList (quizList, callback) {
@@ -118,45 +118,18 @@ function getChallenges (req, res) {
 				Authorization : token
 			}
 		}
-		fs.readFile('points.json', 'utf8', function(err, data) {
-			data = JSON.parse(data);
-			// logic for extracting data
-			var accumulatedNodes = 0;
-			var current_date = new Date();
-			quizList.forEach(function(quiz, index){
-				var totalPoints = 0;
-				var totalNodes = 0;
-				var start_date = range[index].start;
-				var end_date = range[index+1].start || range[index].end;
-				data.forEach(function(dataPoints){
-					if(new Date(dataPoints.created) >= start_date && new Date(dataPoints.created) < end_date){
-						totalPoints += dataPoints.score;
-						totalNodes += dataPoints.action == 'node_complete' ? 1 : 0;
-						accumulatedNodes = totalNodes;
-					}
-				})
-				quiz['total_nodes_consumed'] = totalNodes;
-				quiz['total_points_earned'] = totalPoints;
-				if(current_date >= start_date && current_date < end_date){
-					quiz['locked'] = totalNodes < locked_threshold ? true : false;
-				}
-				else if(current_date > end_date){
-					quiz['locked'] = accumulatedNodes < locked_threshold*(index+1) ? true : false;
-				}
-				console.log(quiz.total_nodes_consumed, quiz.total_points_earned, quiz.locked)
-			})
-			// end : logic for extracting data
-			callback && callback(null, JSON.stringify(data))
-
-		});
-		// request(config, function(error, response, body){
-		// 	if(error){
-		// 		callback('error')
-		// 	}
-		// 	else{
-		// 		callback(null, body)
-		// 	}
-		// })
+		
+		request(config, function(error, response, pointsList){
+			if(error){
+				callback('error')
+			}
+			else{
+				// test date
+				var current_date = new Date('2017-02-27T08:10:39.923746Z');
+				calculate(JSON.parse(quizList), JSON.parse(pointsList), current_date, range, locked_threshold, callback)
+				// callback(null, pointsList)
+			}
+		})
 		// callback(null, JSON.stringify(quizList))
 
 	}
@@ -164,7 +137,7 @@ function getChallenges (req, res) {
 }
 
 
-function calculate(quizList, pointList, current_date) {
+function calculate(quizList, pointList, current_date, date_range, threshold, callback) {
 	var current_date = current_date || new Date();
 	var totalPoints;
 	var totalNodes;
@@ -173,8 +146,8 @@ function calculate(quizList, pointList, current_date) {
 	quizList.forEach(function(quiz, index){
 		totalNodes = 0;
 		totalPoints = 0;
-		var start_date = range[index].start;
-		var end_date = (range[index+1] && range[index+1].start) || (range[index].end);
+		var start_date = date_range[index].start;
+		var end_date = (date_range[index+1] && date_range[index+1].start) || (date_range[index].end);
 
 		// find current week
 		if(current_date >= start_date && current_date < end_date){
@@ -182,7 +155,7 @@ function calculate(quizList, pointList, current_date) {
 		}
 
 
-		// get points in that date range
+		// get points in that date date_range
 		pointList.forEach(function(dataPoints){
 			if(new Date(dataPoints.created) >= start_date && new Date(dataPoints.created) < end_date){
 				totalPoints += dataPoints.score;
@@ -195,38 +168,41 @@ function calculate(quizList, pointList, current_date) {
 		quiz['total_points_earned'] = totalPoints;
 
 		// lock node
-		quiz['locked'] = quiz.total_nodes_consumed < locked_threshold ? true : false;
+		quiz['locked'] = quiz.total_nodes_consumed < threshold ? true : false;
 	})
 
 	// traverse back from currentIndex and change lock value by adding extra points accumulated from the current node
-	// find sum
-	var sum = 0;
-	sum += quizList[currentIndex].total_nodes_consumed > 2 ? quizList[currentIndex].total_nodes_consumed - 2 : 0;
-	for (var i = currentIndex-1; i >= 0; i--) {
-		if(quizList[i].total_nodes_consumed - locked_threshold > 0)
-		sum += quizList[i].total_nodes_consumed - locked_threshold;
+	// find excess
+	var excess = 0;
+	// excess += quizList[currentIndex].total_nodes_consumed > 2 ? quizList[currentIndex].total_nodes_consumed - 2 : 0;
+	for (var i = currentIndex; i >= 0; i--) {
+		if(quizList[i].total_nodes_consumed - threshold > 0){
+			excess += quizList[i].total_nodes_consumed - threshold;
+		}
 	}
 
 	// traverse down and add node
-	for (var c = 0; c < currentIndex; c++) {
-		console.log('before :',sum)
-		if(quizList[c].locked && (sum - (locked_threshold - quizList[c].total_nodes_consumed)) >= 0){
+	for (var c = 0; c <= currentIndex; c++) {
+		console.log('before :',excess)
+		if(quizList[c].locked && (excess - (threshold - quizList[c].total_nodes_consumed)) >= 0){
 			quizList[c].locked = false;
-			sum = sum - (locked_threshold - quizList[c].total_nodes_consumed);
+			excess = excess - (threshold - quizList[c].total_nodes_consumed);
 		}
-		console.log('after :',sum)
+		console.log('after :',excess)
 	}
 
 	for (var x = currentIndex + 1; x < quizList.length; x++) {
 		quizList[x].locked = true;
 	}
 
+	callback(null, JSON.stringify(quizList))
 	// print
-	quizList.forEach(function(quiz, index){
-		console.log(index, JSON.stringify(quiz))
-		if(index == currentIndex)
-			console.log('^')
-	})
+	// quizList.forEach(function(quiz, index){
+	// 	console.log(index, JSON.stringify(quiz))
+	// 	if(index == currentIndex)
+	// 		console.log('^')
+	// })
+
 }
 
 var range = {
@@ -257,7 +233,7 @@ var range = {
 }
 
 function test(){
-	currentDate1 = new Date('2017-03-06T08:10:39.923746Z');
+	currentDate1 = new Date('2017-02-27T08:10:39.923746Z');
 	quizList1 = [{},{},{},{},{},{}];
 	pointList1 = [
 		{
@@ -265,19 +241,23 @@ function test(){
 			score : 10,
 			action : 'node_complete'
 		},{
-			created : '2017-02-07T08:10:39.923746Z',
+			created : '2017-02-05T08:10:39.923746Z',
 			score : 20,
 			action : 'node_complete'
 		},{
-			created : '2017-02-21T08:10:39.923746Z',
+			created : '2017-02-01T08:10:39.923746Z',
 			score : 200,
 			action : 'node_complete'
 		},{
-			created : '2017-02-21T08:10:39.923746Z',
+			created : '2017-02-07T08:10:39.923746Z',
 			score : 150,
 			action : 'node_complete',
 		},{
-			created : '2017-02-27T08:10:39.923746Z',
+			created : '2017-02-20T08:10:39.923746Z',
+			score : 890,
+			action : 'node_complete'
+		},{
+			created : '2017-02-21T08:10:39.923746Z',
 			score : 890,
 			action : 'node_complete'
 		},{
@@ -285,15 +265,11 @@ function test(){
 			score : 890,
 			action : 'node_complete'
 		},{
-			created : '2017-02-28T08:10:39.923746Z',
+			created : '2017-02-29T08:10:39.923746Z',
 			score : 890,
 			action : 'node_complete'
 		},{
-			created : '2017-03-06T08:10:39.923746Z',
-			score : 890,
-			action : 'node_complete'
-		},{
-			created : '2017-03-06T08:10:39.923746Z',
+			created : '2017-02-30T08:10:39.923746Z',
 			score : 890,
 			action : 'node_complete'
 		}
@@ -303,4 +279,4 @@ function test(){
 	// calculate(quizList3, currentDate3, data3);
 }
 
-test();
+// test();
