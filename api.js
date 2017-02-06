@@ -224,7 +224,7 @@ function getChallenges(req, res) {
                         }
                     }))
                 } else {
-                    if (response.statusCode == 200) {
+                    if (response.statusCode == '200') {
                         utility.getMetaFile('./variables.json',function(meta){
                             meta = JSON.parse(meta)
                             var quiz = API.processQuiz(JSON.parse(quizList), JSON.parse(body), meta.current_date, meta.range, meta.threshold)
@@ -234,7 +234,7 @@ function getChallenges(req, res) {
                         callback(JSON.stringify({
                             'status': response.statusCode,
                             'body': {
-                                'msg': JSON.parse(body)
+                                'msg': 'no points found'
                             }
                         }))
                     }
