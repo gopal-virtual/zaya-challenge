@@ -8,7 +8,14 @@
             'ngSanitize'
         ]);
 })();
+(function() {
+    'use strict';
 
+    angular
+        .module('zayaChallenge')
+        .constant('SERVER', 'https://cc-test-2.zaya.in/api/v1');
+
+})();
 (function() {
     'use strict';
 
@@ -99,14 +106,20 @@
             }, function errorCallback(error) {
                 console.log(error)
             })
-
-        Rest.getLeaderBoard($stateParams.userid, $stateParams.token)
-        .then(function successCallback(response){
-          $scope.leaderboard = response.data;
-          console.log(response);
-        },function errorCallback(error){
-          console.log(error)
+        Rest.getProfileId($stateParams.userid, $stateParams.token)
+        .then(function (response){
+            $stateParams.userid = response.data[0].id;
+            console.log($stateParams.userid)
+            Rest.getLeaderBoard($stateParams.userid, $stateParams.token)
+            .then(function (response){
+                $scope.leaderboard = response.data;
+            },function (error){
+                console.log(r)
+            })
+        },function (error){
+            console.log(error)
         })
+
         $scope.mapRank = utility.mapRank;
 
         function startChallenge(quiz) {
@@ -361,19 +374,33 @@
         .module('zayaChallenge')
         .factory('Rest', Rest);
 
-    Rest.$inject = ['$http'];
+    Rest.$inject = ['$http', 'SERVER'];
 
     /* @ngInject */
-    function Rest($http) {
+    function Rest($http, SERVER) {
         var Rest = {
             getChallenges: getChallenges, // user based challenge list : @input : userid
             getLeaderBoard: getLeaderBoard, // user leaderboard : @input : userid
             sendReport: sendReport,
             getDates : getDates,
-            setMeta : setMeta
+            setMeta : setMeta,
+            getProfileId : getProfileId,
         };
 
         return Rest;
+
+        function getProfileId(clientid, token, callback) {
+            return $http({
+                url: SERVER+'/profiles/',
+                method: 'GET',
+                params : {
+                    client_uid : clientid
+                },
+                headers: {
+                    Authorization: 'Token ' + token
+                }
+            })
+        }
 
         function setMeta (data) {
             return $http({
@@ -392,7 +419,7 @@
         function sendReport(profile_id, token, report) {
           return $http({
             method : 'POST',
-            url : 'https://cc-test-2.zaya.in/api/v1/profiles/'+profile_id+'/points/',
+            url : SERVER+'/profiles/'+profile_id+'/points/',
             headers: {
                 'Authorization': 'Token ' + token
             },
@@ -420,7 +447,7 @@
               headers : {
                 'Authorization' : 'Token ' + token
               },
-              url : 'https://cc-test-2.zaya.in/api/v1/profiles/'+userid+'/leaderboard/'
+              url : SERVER+'/profiles/'+userid+'/leaderboard/'
             })
         }
     }

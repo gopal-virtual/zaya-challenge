@@ -2,7 +2,7 @@ var request = require('request');
 var async = require('async');
 var utility = require('./utility.js').utility;
 // var meta = require('./variables.js').meta;
-
+var server = 'https://cc-test-2.zaya.in/api/v1';
 var API = {
     processQuiz: processQuiz,
     getChallenges: getChallenges,
@@ -22,7 +22,7 @@ function updateLessons (req, res) {
     if(req.query.accountid && req.headers.authorization){
         var token = 'Token ' + req.headers.authorization.split(' ')[1];
         var config = {
-            uri: 'https://cc-test-2.zaya.in/api/v1/accounts/' + req.query.accountid + '/lessons/',
+            uri: server+'/accounts/' + req.query.accountid + '/lessons/',
             method: 'GET',
             headers: {
                 Authorization: token
@@ -191,7 +191,7 @@ function getChallenges(req, res) {
 
         function getProfileId(callback) {
             var config = {
-                uri: 'https://cc-test.zaya.in/api/v1/profiles',
+                uri: server+'/profiles',
                 method: 'GET',
                 qs : {
                     client_uid : clientid
@@ -210,6 +210,7 @@ function getChallenges(req, res) {
                     }))
                 } else {
                     body = JSON.parse(body)
+                    console.log(body)
                     if(body.length){
                         callback(null, body[0].id)
                     }
@@ -227,7 +228,7 @@ function getChallenges(req, res) {
 
         function getChallengeList(profileid, callback) {
             var config = {
-                uri: 'https://cc-test-2.zaya.in/api/v1/accounts/' + accountid + '/challenges/',
+                uri: server+'/accounts/' + accountid + '/challenges/',
                 method: 'GET',
                 headers: {
                     Authorization: token
@@ -275,7 +276,7 @@ function getChallenges(req, res) {
 
         function getQuizList(profileid, challengeId, callback) {
             var config = {
-                uri: 'https://cc-test-2.zaya.in/api/v1/accounts/' + accountid + '/lessons/' + challengeId + '/',
+                uri: server+'/accounts/' + accountid + '/lessons/' + challengeId + '/',
                 method: 'GET',
                 headers: {
                     Authorization: token
@@ -307,7 +308,7 @@ function getChallenges(req, res) {
 
         function getFilteredQuizList(profileid, quizList, callback) {
             var config = {
-                uri: 'https://cc-test-2.zaya.in/api/v1/profiles/' + profileid + '/points/',
+                uri: server+'/profiles/' + profileid + '/points/',
                 method: 'GET',
                 headers: {
                     Authorization: token
