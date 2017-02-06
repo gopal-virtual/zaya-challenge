@@ -1,7 +1,7 @@
 var request = require('request');
 var async = require('async');
-var fs = require("fs");
-var meta = require('./variables.js').meta;
+var utility = require('./utility.js').utility;
+// var meta = require('./variables.js').meta;
 
 var API = {
     processQuiz: processQuiz,
@@ -19,7 +19,7 @@ function setMeta (req, res) {
     });
 
     req.on('end', function() {
-        fs.writeFile(file, jsonString, 'utf8', function(err) {
+        utility.setMetaFile(file, jsonString, function(err){
             if (err) {
                 res.writeHead(400, {
                     'Content-Type': 'text/json'
@@ -34,13 +34,13 @@ function setMeta (req, res) {
     });
 }
 function getDates(req, res) {
-  var file = './variables.json'
-  fs.readFile(file, 'utf8', function(err, data) {
+var file = './variables.json'
+  utility.getMetaFile(file, function(data){
       res.writeHead(200, {
           'Content-Type': 'text/json'
       });
       res.end(data)
-  });
+  })
 }
 
 
@@ -57,7 +57,7 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
     quizList.forEach(function(quiz, index) {
         var start_date = date_range[index].start;
         quiz['meta'] = {};
-        quiz.meta['threshold'] = meta.threshold;
+        quiz.meta['threshold'] = threshold;
         if (total_number_of_nodes > 0 && current_date > start_date) {
             quiz.meta['active'] = true;
             quiz.meta['total_nodes_consumed'] = total_number_of_nodes >= threshold ? threshold : total_number_of_nodes;
@@ -67,6 +67,8 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
     })
     return quizList;
 }
+
+
 
 /* get list of challenges
  ****************************
@@ -223,8 +225,11 @@ function getChallenges(req, res) {
                     }))
                 } else {
                     if (response.statusCode == 200) {
-                        var quiz = API.processQuiz(JSON.parse(quizList), JSON.parse(body), meta.current_date, meta.range, meta.threshold)
-                        callback(null, JSON.stringify(quiz))
+                        utility.getMetaFile('./variables.json',function(meta){
+                            meta = JSON.parse(meta)
+                            var quiz = API.processQuiz(JSON.parse(quizList), JSON.parse(body), meta.current_date, meta.range, meta.threshold)
+                            callback(null, JSON.stringify(quiz))
+                        })
                     } else {
                         callback(JSON.stringify({
                             'status': response.statusCode,
