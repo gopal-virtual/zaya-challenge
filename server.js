@@ -3,7 +3,9 @@ var app = express();
 var api = require('./api.js').API;
 
 app.get('/', home);
-app.get('/get/challenges', api.getChallenges)
+app.get('/get/challenges', api.getChallenges);
+app.get('/get/dates', api.getDates)
+app.post('/update/meta', api.setMeta)
 
 app.use(express.static(__dirname + '/node_modules'));
 app.use(express.static(__dirname + '/bower_components'));
@@ -25,4 +27,3 @@ var server = app.listen(8062, 'localhost', function() {
 function home(req, res) {
     res.sendFile(__dirname + "/index.html");
 }
-

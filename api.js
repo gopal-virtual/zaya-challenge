@@ -5,7 +5,42 @@ var meta = require('./variables.js').meta;
 
 var API = {
     processQuiz: processQuiz,
-    getChallenges: getChallenges
+    getChallenges: getChallenges,
+    getDates : getDates,
+    setMeta : setMeta
+}
+
+function setMeta (req, res) {
+    var file = './variables.json'
+    var jsonString = '';
+
+    req.on('data', function(data) {
+        jsonString += data;
+    });
+
+    req.on('end', function() {
+        fs.writeFile(file, jsonString, 'utf8', function(err) {
+            if (err) {
+                res.writeHead(400, {
+                    'Content-Type': 'text/json'
+                });
+                return res.end(JSON.stringify({
+                    "error": err
+                }));
+            } else {
+                return res.end(jsonString)
+            }
+        })
+    });
+}
+function getDates(req, res) {
+  var file = './variables.json'
+  fs.readFile(file, 'utf8', function(err, data) {
+      res.writeHead(200, {
+          'Content-Type': 'text/json'
+      });
+      res.end(data)
+  });
 }
 
 
@@ -22,8 +57,9 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
     quizList.forEach(function(quiz, index) {
         var start_date = date_range[index].start;
         quiz['meta'] = {};
+        quiz.meta['threshold'] = meta.threshold;
         if (total_number_of_nodes > 0 && current_date > start_date) {
-            quiz['active'] = true;
+            quiz.meta['active'] = true;
             quiz.meta['total_nodes_consumed'] = total_number_of_nodes >= threshold ? threshold : total_number_of_nodes;
             quiz.meta['locked'] = quiz.meta.total_nodes_consumed < threshold ? true : false;
             total_number_of_nodes = total_number_of_nodes - threshold;

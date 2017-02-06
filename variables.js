@@ -1,6 +1,6 @@
 exports.meta = {
 	current_date : new Date('2017-02-30T08:10:39.923746Z'),
-	threshold : 6,
+	threshold : 100,
 	range : {
 		0 : {
 			start : new Date('2017-01-30'),

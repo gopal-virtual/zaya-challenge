@@ -32,6 +32,11 @@
             url: '/unauthorized',
             templateUrl: '/unauthorized.html'
         }, {
+            name : 'date',
+            url : '/date',
+            templateUrl : 'date.html',
+            controller : 'dateController as dateCtrl'
+        },{
             name: 'challenge',
             url: '/challenge',
             params: {
@@ -119,6 +124,39 @@
             else{
                 return (( nodes / threshold ) * 100).toString();
             }
+        }
+    }
+})();
+(function() {
+    'use strict';
+
+    angular
+        .module('zayaChallenge')
+        .controller('dateController', dateController);
+
+    dateController.$inject = ['Rest'];
+
+    /* @ngInject */
+    function dateController(Rest) {
+        var dateCtrl = this;
+        dateCtrl.setMeta = setMeta;
+        Rest.getDates()
+        .then(function successCallback(response){
+          dateCtrl.meta = response.data;
+          console.log(response);
+        },function errorCallback(error){
+          console.log(error)
+        })
+
+        function setMeta (data) {
+            console.log(data)
+            Rest.setMeta(data)
+            .then(function successCallback(response){
+              dateCtrl.meta = response.data;
+              console.log(response);
+            },function errorCallback(error){
+              console.log(error)
+            })
         }
     }
 })();
@@ -330,10 +368,26 @@
         var Rest = {
             getChallenges: getChallenges, // user based challenge list : @input : userid
             getLeaderBoard: getLeaderBoard, // user leaderboard : @input : userid
-            sendReport: sendReport
+            sendReport: sendReport,
+            getDates : getDates,
+            setMeta : setMeta
         };
 
         return Rest;
+
+        function setMeta (data) {
+            return $http({
+              method : 'POST',
+              url : '/update/meta',
+              data : data
+            })
+        }
+        function getDates () {
+            return $http({
+                method : 'GET',
+                url : '/get/dates'
+            })
+        }
 
         function sendReport(profile_id, token, report) {
           return $http({
@@ -381,6 +435,7 @@
 
     function run($rootScope, $state) {
         $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
+            console.log(toState)
             if (toState.name == 'home' && !toParams.token) {
                 event.preventDefault();
                 $state.go('unauthorized')
