@@ -7,7 +7,62 @@ var API = {
     processQuiz: processQuiz,
     getChallenges: getChallenges,
     getDates : getDates,
-    setMeta : setMeta
+    setMeta : setMeta,
+    updateLessons : updateLessons
+}
+
+function getIdList(list){
+    var idlist = [];
+    list.forEach(function(item){
+        idlist.push(item.id)
+    })
+    return idlist;
+}
+function updateLessons (req, res) {
+    if(req.query.accountid && req.headers.authorization){
+        var token = 'Token ' + req.headers.authorization.split(' ')[1];
+        var config = {
+            uri: 'https://cc-test-2.zaya.in/api/v1/accounts/' + req.query.accountid + '/lessons/',
+            method: 'GET',
+            headers: {
+                Authorization: token
+            }
+        };
+        request(config, function(error, response, body) {
+            if (error) {
+                res.writeHead(500, {
+                    'Content-Type': 'text/json'
+                });
+                res.end(JSON.stringify({
+                    msg : error
+                }))
+            } else {
+                body = JSON.stringify(getIdList(JSON.parse(body)))
+                utility.setMetaFile('./lesson_list.json', body, function(err){
+                    if(!err){
+                        res.writeHead(response.statusCode , {
+                            'Content-Type': 'text/json'
+                        });
+                        res.end(body)
+                    }
+                    else{
+                        res.writeHead(500 , {
+                            'Content-Type': 'text/json'
+                        });
+                        res.end(err)
+                    }
+                })
+            }
+        })
+    }
+    else {
+        res.writeHead(500, {
+            'Content-Type': 'text/json'
+        });
+        res.end(JSON.stringify({
+            msg : 'accountid/authorization not provided'
+        }))
+    }
 }
 
 function setMeta (req, res) {
@@ -51,20 +106,29 @@ var file = './variables.json'
 function processQuiz(quizList, pointList, current_date, date_range, threshold) {
     // accumulate the scores and distribute, and unlock it accordingly
     var total_number_of_nodes = pointList.length;
-    var current_date = current_date || new Date();
+    var current_date = new Date(current_date) || new Date();
     var totalPoints, totalNodes, currentIndex;
 
     quizList.forEach(function(quiz, index) {
-        var start_date = date_range[index].start;
+        var start_date = new Date(date_range[index].start);
         quiz['meta'] = {};
         quiz.meta['threshold'] = threshold;
+        console.log(current_date, start_date, current_date > start_date)
         if (total_number_of_nodes > 0 && current_date > start_date) {
             quiz.meta['active'] = true;
             quiz.meta['total_nodes_consumed'] = total_number_of_nodes >= threshold ? threshold : total_number_of_nodes;
             quiz.meta['locked'] = quiz.meta.total_nodes_consumed < threshold ? true : false;
             total_number_of_nodes = total_number_of_nodes - threshold;
         }
+        else {
+            quiz.meta['total_nodes_consumed'] = 0;
+            quiz.meta['active'] = false;
+            quiz.meta['locked'] = true;
+        }
     })
+
+    quizList[0].meta.active = !quizList[0].meta.active ? true : quizList[0].meta.active;
+    console.log(quizList)
     return quizList;
 }
 
@@ -87,14 +151,15 @@ function getChallenges(req, res) {
 
         var token = 'Token ' + req.headers.authorization.split(' ')[1];
         var accountid = req.query.account;
-        var profileid = req.query.profile;
+        var clientid = req.query.profile;
 
 
-        if (accountid && profileid) {
+        if (accountid && clientid) {
             /* pass output from one function to the other one in
                 the chain using waterfall method of async library
             */
             async.waterfall([
+                getProfileId,
                 getChallengeList,
                 getQuizList,
                 getFilteredQuizList
@@ -124,9 +189,43 @@ function getChallenges(req, res) {
             return res.end(result);
         }
 
+        function getProfileId(callback) {
+            var config = {
+                uri: 'https://cc-test.zaya.in/api/v1/profiles',
+                method: 'GET',
+                qs : {
+                    client_uid : clientid
+                },
+                headers: {
+                    Authorization: token
+                }
+            };
+            request(config, function(error, response, body) {
+                if (error) {
+                    callback(JSON.stringify({
+                        'status': 400,
+                        'body': {
+                            'msg': error
+                        }
+                    }))
+                } else {
+                    body = JSON.parse(body)
+                    if(body.length){
+                        callback(null, body[0].id)
+                    }
+                    else{
+                        callback(JSON.stringify({
+                            'status': 404,
+                            'body': {
+                                'msg': 'No profile found'
+                            }
+                        }))
+                    }
+                }
+            })
+        }
 
-
-        function getChallengeList(callback) {
+        function getChallengeList(profileid, callback) {
             var config = {
                 uri: 'https://cc-test-2.zaya.in/api/v1/accounts/' + accountid + '/challenges/',
                 method: 'GET',
@@ -147,7 +246,7 @@ function getChallenges(req, res) {
                         var challenges = JSON.parse(body)
                         if (challenges.length) {
                             var challengeId = challenges[0].id;
-                            callback(null, challengeId);
+                            callback(null, profileid, challengeId);
                         } else {
                             callback(
                                 JSON.stringify({
@@ -174,7 +273,7 @@ function getChallenges(req, res) {
 
 
 
-        function getQuizList(challengeId, callback) {
+        function getQuizList(profileid, challengeId, callback) {
             var config = {
                 uri: 'https://cc-test-2.zaya.in/api/v1/accounts/' + accountid + '/lessons/' + challengeId + '/',
                 method: 'GET',
@@ -193,7 +292,7 @@ function getChallenges(req, res) {
                 } else {
                     if (response.statusCode == '200') {
                         body = JSON.parse(body).objects;
-                        callback(null, JSON.stringify(body))
+                        callback(null, profileid, JSON.stringify(body))
                     } else {
                         callback(JSON.stringify({
                             'status': response.statusCode,
@@ -206,7 +305,7 @@ function getChallenges(req, res) {
             })
         }
 
-        function getFilteredQuizList(quizList, callback) {
+        function getFilteredQuizList(profileid, quizList, callback) {
             var config = {
                 uri: 'https://cc-test-2.zaya.in/api/v1/profiles/' + profileid + '/points/',
                 method: 'GET',

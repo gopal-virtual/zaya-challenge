@@ -6,6 +6,7 @@ app.get('/', home);
 app.get('/get/challenges', api.getChallenges);
 app.get('/get/dates', api.getDates)
 app.post('/update/meta', api.setMeta)
+app.patch('/update/lessons', api.updateLessons)
 
 app.use(express.static(__dirname + '/node_modules'));
 app.use(express.static(__dirname + '/bower_components'));
