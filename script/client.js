@@ -1,6 +1,5 @@
 (function() {
     'use strict';
-
     angular
         .module('zayaChallenge', [
             'ui.router',
@@ -18,7 +17,6 @@
 // })();
 (function() {
     'use strict';
-
     angular
         .module('zayaChallenge')
         .config(config);
@@ -27,7 +25,6 @@
         $urlRouterProvider.otherwise(function($injector) {
             $injector.get('$state').go('home');
         });
-
         var states = [{
             name: 'home',
             url: '/:accountid/:userid/:token',
@@ -74,37 +71,28 @@
             controller: 'guideController',
             controllerAs: 'guideCtrl'
         }]
-
         states.forEach(function(state) {
             $stateProvider.state(state);
         });
     }
 })();
-
 (function() {
     'use strict';
-
     angular
         .module('zayaChallenge')
         .controller('homeController', homeController);
-
     homeController.$inject = ['Rest', '$state', '$stateParams', 'utility', '$scope'];
-
     /* @ngInject */
     function homeController(Rest, $state, $stateParams, utility, $scope) {
         var homeCtrl = this;
         homeCtrl.startChallenge = startChallenge;
         homeCtrl.getProgress = getProgress;
         homeCtrl.goBacktoMap = goBacktoMap;
-        homeCtrl.closeChallenge = closeChallenge;
 
-        function closeChallenge(){
-            
-        }
         function goBacktoMap() {
-
+            console.log(window);
+            window.parent.postMessage('backToMap', '*');
         }
-
         $stateParams.accountid && $stateParams.userid && $stateParams.token &&
             Rest
             .getChallenges($stateParams.accountid, $stateParams.userid, $stateParams.token)
@@ -126,7 +114,6 @@
             }, function(error) {
                 console.log(error)
             })
-
         $scope.mapRank = utility.mapRank;
 
         function startChallenge(quiz) {
@@ -148,13 +135,10 @@
 })();
 (function() {
     'use strict';
-
     angular
         .module('zayaChallenge')
         .controller('dateController', dateController);
-
     dateController.$inject = ['Rest'];
-
     /* @ngInject */
     function dateController(Rest) {
         var dateCtrl = this;
@@ -181,13 +165,10 @@
 })();
 (function() {
     'use strict';
-
     angular
         .module('zayaChallenge')
         .controller('challengeController', challengeController);
-
     challengeController.$inject = ['Rest', '$stateParams', '$state', '$timeout', '$scope', 'quizFactory'];
-
     /* @ngInject */
     function challengeController(Rest, $stateParams, $state, $timeout, $scope, quizFactory) {
         var challengeCtrl = this;
@@ -208,13 +189,14 @@
         challengeCtrl.getElapsedTime = getElapsedTime;
         $scope.closeRead = closeRead;
 
-        function openRead () {
+        function openRead() {
             $(".button-float").trigger("click");
         }
-        $timeout(function(){
+        $timeout(function() {
             openRead()
         })
-        function closeRead () {
+
+        function closeRead() {
             $("#close-read").trigger("click");
         }
 
@@ -228,14 +210,12 @@
             var minutes = (timeElapsed - seconds) / 60;
             return onlyMinutes ? minutes : minutes + ":" + seconds;
         }
-
         $scope.settings = {
             closeEl: '.close',
             overlay: {
                 templateUrl: '/reading-comprehension.html'
             }
         }
-
         var interval = 1000; // ms
         challengeCtrl.startTime = Date.now();
         challengeCtrl.time = challengeCtrl.startTime + interval;
@@ -280,24 +260,21 @@
                 })
             }
         }
-
         console.log(challengeCtrl.quiz)
     }
 })();
 (function() {
     'use strict';
-
     angular
         .module('zayaChallenge')
         .controller('resultController', resultController);
-
     resultController.$inject = ['Rest', '$scope', 'utility', '$stateParams'];
-
     /* @ngInject */
     function resultController(Rest, $scope, utility, $stateParams) {
         var resultCtrl = this;
         console.log($stateParams)
         resultCtrl.points = $stateParams.score - $stateParams.time * 10;
+        resultCtrl.shareScore = shareScore;
         Rest.sendReport($stateParams.userid, $stateParams.token, {
                 "action": "quiz_complete",
                 "score": resultCtrl.points,
@@ -313,23 +290,24 @@
             }, function errorCallback(error) {
                 console.log(error)
             })
+
+        function shareScore(points) {
+            window.parent.postMessage('share-'+points, '*');
+        }
         $scope.mapRank = utility.mapRank;
     }
 })();
 (function() {
     'use strict';
-
     angular
         .module('zayaChallenge')
         .directive('carousel', carousel);
-
     /* @ngInject */
     function carousel($timeout) {
         var carousel = {
             restrict: 'A',
             link: linkFunc
         };
-
         return carousel;
 
         function linkFunc(scope, el, attr, ctrl) {
@@ -345,34 +323,26 @@
 })();
 (function() {
     'use strict';
-
     angular
         .module('zayaChallenge')
         .controller('guideController', guideController);
-
     guideController.$inject = [];
-
     /* @ngInject */
     function guideController() {
         var guideCtrl = this;
     }
 })();
-
 (function() {
     'use strict';
-
     angular
         .module('zayaChallenge')
         .factory('utility', utility);
-
     utility.$inject = [];
-
     /* @ngInject */
     function utility() {
         var utility = {
             mapRank: mapRank
         };
-
         return utility;
 
         function mapRank(rank) {
@@ -390,13 +360,10 @@
 })();
 (function() {
     'use strict';
-
     angular
         .module('zayaChallenge')
         .factory('Rest', Rest);
-
     Rest.$inject = ['$http', 'CONSTANT'];
-
     /* @ngInject */
     function Rest($http, CONSTANT) {
         var Rest = {
@@ -407,7 +374,6 @@
             setMeta: setMeta,
             getProfileId: getProfileId,
         };
-
         return Rest;
 
         function getProfileId(clientid, token, callback) {
@@ -479,7 +445,6 @@
     angular
         .module('zayaChallenge')
         .run(run);
-
     run.$inject = ['$rootScope', '$state'];
 
     function run($rootScope, $state) {
@@ -537,7 +502,6 @@
         }
 
         function getImageSrc(id, index, quiz) {
-
             // return mediaManager.getPath(quiz.objects[index].node.type.content.widgets.images[id]);
             var d = $q.defer();
             d.resolve(CONSTANT.SERVER + quiz.objects[index].node.type.content.widgets.images[id])
@@ -591,7 +555,6 @@
 
         function getLayout(question, index, quiz) {
             var layout = CONSTANT.WIDGETS.LAYOUT.LIST;
-
             angular.forEach(question.node.type.content.options, function(option) {
                 if (this.getImageId(option.option) || this.getSoundId(option.option)) {
                     layout = CONSTANT.WIDGETS.LAYOUT.GRID;
@@ -613,19 +576,15 @@
 })();
 (function() {
     'use strict';
-
     angular
         .module('zayaChallenge')
         .factory('quizFactory', quizFactory);
-
     quizFactory.$inject = ['widgetParser', '$q'];
-
     /* @ngInject */
     function quizFactory(widgetParser, $q) {
         var quizFactory = {
             getQuiz: getQuiz
         };
-
         return quizFactory;
 
         function getQuiz(quiz) {
@@ -716,13 +675,11 @@
 })();
 (function() {
     'use strict';
-
     angular
         .module('zayaChallenge')
         .factory('audio', audio)
 
     function audio($log) {
-
         return {
             player: {
                 play: playSound, // replaces current sound and removes next sound
@@ -783,7 +740,5 @@
         function addCallback(callBack) {
             angular.element("#audioplayer")[0].onended = callBack;
         }
-
-
     }
 })();
