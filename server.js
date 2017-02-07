@@ -17,7 +17,7 @@ app.use(express.static(__dirname + '/assets'));
 app.use(express.static(__dirname + '/font'));
 app.use(express.static(__dirname + '/css'));
 
-var server = app.listen(8062, 'localhost', function() {
+var server = app.listen(8062, '0.0.0.0', function() {
 
     var host = server.address().address
     var port = server.address().port
