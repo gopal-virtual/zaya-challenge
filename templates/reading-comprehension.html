@@ -1,14 +1,15 @@
 <div class="container reading-comprehension ">
     <div class="row">
-        <span class="glyphicon glyphicon-remove close pull-right"></span>
+        <span class="glyphicon glyphicon-remove close pull-right invisible" id="close-read"></span>
     </div>
     <div class="row">
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <br>
             <div class="scroll font-dark-blue">
                 <p ng-bind-html="prose"></p>
             </div>
             <div class="padding text-center">
-                <button class="sbtn sbtn-next"></button>
+                <button class="sbtn sbtn-quiz-yellow" ng-click="closeRead()"></button>
             </div>
         </div>
     </div>

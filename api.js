@@ -113,7 +113,7 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
         var start_date = new Date(date_range[index].start);
         quiz['meta'] = {};
         quiz.meta['threshold'] = threshold;
-        console.log(current_date, start_date, current_date > start_date)
+        // console.log(current_date, start_date, current_date > start_date)
         if (total_number_of_nodes > 0 && current_date > start_date) {
             quiz.meta['active'] = true;
             quiz.meta['total_nodes_consumed'] = total_number_of_nodes >= threshold ? threshold : total_number_of_nodes;
@@ -128,7 +128,7 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
     })
 
     quizList[0].meta.active = !quizList[0].meta.active ? true : quizList[0].meta.active;
-    console.log(quizList)
+    // console.log(quizList)
     return quizList;
 }
 
@@ -210,7 +210,7 @@ function getChallenges(req, res) {
                     }))
                 } else {
                     body = JSON.parse(body)
-                    console.log(body)
+                    // console.log(body)
                     if(body.length){
                         callback(null, body[0].id)
                     }
@@ -314,7 +314,7 @@ function getChallenges(req, res) {
                     Authorization: token
                 }
             }
-
+            console.log(config)
             request(config, function(error, response, body) {
                 if (error) {
                     callback(JSON.stringify({

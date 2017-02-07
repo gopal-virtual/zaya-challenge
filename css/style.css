@@ -67,6 +67,9 @@
 .font-title {
     font-size : 34px;
 }
+.invisible{
+  opacity : 0;
+}
 body,
 p,
 span,
@@ -75,6 +78,15 @@ div{
 }
 body{
     background-color: #F8E8CF;
+}
+.bg-cream {
+  background-color: #F8E8CF;
+}
+.nav-bar-padding{
+    padding: 115px 15px;
+}
+.has-header{
+  padding-top: 65px;
 }
 .padding-bottom{
     padding-bottom : 20px;
@@ -107,10 +119,32 @@ body{
 .sbtn-next{
   background: url('/svg/button-blue-next.svg');
 }
+.sbtn-back{
+  background: url('/svg/button-back.svg');
+}
+.sbtn-share{
+  background: url('/svg/button-share.svg');
+  width: 120px;
+  height: 38px;
+}
+.sbtn-next-small{
+  background: url('/svg/button-next-small.svg');
+  width: 120px;
+  height: 38px;
+}
+.sbtn-quiz-yellow{
+  background: url('/svg/button-quiz-yellow.svg');
+}
 .sbtn-quiz{
   background: url('/svg/button-quiz.svg');
   width: 156px;
   height: 50px;
+}
+.top{
+  z-index : 9999;
+}
+.text-left{
+  text-align : left;
 }
 .header {
     background-color: #FCF7EE;
@@ -258,7 +292,7 @@ li.leaderboard-user .media-body > img {
     line-height: 25px;
 }
 .scroll{
-    height: 85vh;
+    height: 77vh;
     overflow-y: scroll;
     padding: 20px 10px;
 }

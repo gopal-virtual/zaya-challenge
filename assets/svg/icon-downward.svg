@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="38.13" height="38.13" viewBox="0 0 38.13 38.13">
+  <title>downward</title>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="RC">
+      <g>
+        <circle cx="19.06" cy="19.06" r="19.06" fill="#a5cded"/>
+        <g>
+          <path d="M10.64,20.89l7.64,7.64a1.37,1.37,0,0,0,1.91,0l7.3-7.3a1.35,1.35,0,0,0-1.91-1.91l-7.3,7.3h1.91L12.54,19a1.35,1.35,0,0,0-1.91,1.91Z" fill="#fbf9d9"/>
+          <rect x="17.53" y="9.21" width="3.06" height="17.67" rx="1.53" ry="1.53" fill="#fbf9d9"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
