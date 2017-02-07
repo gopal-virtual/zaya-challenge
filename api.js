@@ -8,7 +8,8 @@ var API = {
     getChallenges: getChallenges,
     getDates : getDates,
     setMeta : setMeta,
-    updateLessons : updateLessons
+    updateLessons : updateLessons,
+    sendReport : sendReport
 }
 
 function getIdList(list){
@@ -17,6 +18,125 @@ function getIdList(list){
         idlist.push(item.id)
     })
     return idlist;
+}
+
+function sendReport (req, res) {
+    var jsonString = '';
+
+    req.on('data', function(data) {
+        jsonString += data;
+    });
+
+    req.on('end', function() {
+        data = JSON.parse(jsonString)
+
+        async.waterfall([
+                function(callback){
+                    getProfileIdfromClientId(data, callback)
+                },
+                getPoints
+            ], sendResponse);
+
+
+    })
+
+    function getPoints(profile_id, points, callback){
+        var config = {
+            uri : server+'/profiles/' + profile_id + '/points/',
+            method: 'POST',
+            headers: {
+                Authorization: req.headers.authorization
+            },
+            json : points
+        }
+        console.log(config)
+        request(config, function(error, response, body){
+            console.log(body)
+            if (!error) {
+                if (response.statusCode == '200') {
+                    callback(null, body)
+                }
+                else{
+                    callback(JSON.stringify({
+                        'status': response.statusCode,
+                        'body': {
+                            'msg': body
+                        }
+                    }))
+                }
+            } else {
+                callback(JSON.stringify({
+                    'status': 400,
+                    'body': {
+                        'msg': error
+                    }
+                }))
+            }
+        })
+
+    }
+
+    function getProfileIdfromClientId (dataPoint, callback) {
+        var config = {
+            uri: server+'/profiles',
+            method: 'GET',
+            qs : {
+                client_uid : dataPoint.client_id
+            },
+            headers: {
+                Authorization: req.headers.authorization
+            }
+        };
+        request(config, function(error, response, body) {
+            if (!error) {
+                if (response.statusCode == '200') {
+                    body = JSON.parse(body)
+                    var id = body.length && body[0].id
+                    if(id){
+                        callback(null, id, dataPoint.points);
+                    }
+                    else{
+                        callback(JSON.stringify({
+                            'status': 400,
+                            'body': {
+                                'msg': "No profile found"
+                            }
+                        }))
+                    }
+                }
+                else{
+                    callback(JSON.stringify({
+                        'status': response.statusCode,
+                        'body': {
+                            'msg': body
+                        }
+                    }))
+                }
+            } else {
+                callback(JSON.stringify({
+                    'status': 400,
+                    'body': {
+                        'msg': error
+                    }
+                }))
+            }
+        })
+    }
+
+    function sendResponse (err, result) {
+        if (err) {
+            err = JSON.parse(err)
+            res.writeHead(err.status, {
+                'Content-Type': 'text/json'
+            });
+            return res.end(JSON.stringify(err.body));
+        }
+        res.writeHead(200, {
+            'Content-Type': 'text/json'
+        });
+        return res.end(result);
+    }
+
 }
 function updateLessons (req, res) {
     if(req.query.accountid && req.headers.authorization){
