@@ -96,7 +96,11 @@
         homeCtrl.startChallenge = startChallenge;
         homeCtrl.getProgress = getProgress;
         homeCtrl.goBacktoMap = goBacktoMap;
+        homeCtrl.closeChallenge = closeChallenge;
 
+        function closeChallenge(){
+            
+        }
         function goBacktoMap() {
 
         }
