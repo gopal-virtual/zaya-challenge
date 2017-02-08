@@ -24,13 +24,12 @@
                 first_time : null
             },
             onEnter : ['$stateParams', '$state', function($stateParams, $state){
-                if($stateParams.first_time){
+                if($stateParams.first_time=='true'){
                     $state.go('guide',{
                         accountid : $stateParams.accountid,
                         userid : $stateParams.userid,
                         token : $stateParams.token
                     })
-                    return;
                 }
             }],
             templateUrl: '/home.html',
