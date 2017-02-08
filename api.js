@@ -3,6 +3,7 @@ var async = require('async');
 var utility = require('./utility.js').utility;
 // var meta = require('./variables.js').meta;
 var server = 'https://cc-test-2.zaya.in/api/v1';
+
 var API = {
     processQuiz: processQuiz,
     getChallenges: getChallenges,
@@ -246,6 +247,11 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
             quiz.meta['locked'] = true;
         }
     })
+
+    // traverse the unlock nodes
+    // check whether they have a point already generated
+    // if yes -> lock them, keep them active, i.e. true
+    // else let it be as it is
 
     quizList[0].meta.active = !quizList[0].meta.active ? true : quizList[0].meta.active;
     // console.log(quizList)

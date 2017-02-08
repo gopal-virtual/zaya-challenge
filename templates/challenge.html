@@ -44,7 +44,7 @@
                         </div>
                         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                             <ul class="option-group">
-                                <li class="option-group-item" ng-class="{ 'selected' : option.key == question.selected }" ng-bind-html="::option.widgetHtml" ng-repeat="(key, option) in ::question.node.type.content.options" ng-click="challengeCtrl.selectOption(option.key)"></li>
+                                <li class="option-group-item" ng-class="{ 'selected' : challengeCtrl.selected(option, question)}" ng-bind-html="::option.widgetHtml" ng-repeat="(key, option) in ::question.node.type.content.options" ng-click="challengeCtrl.selectOption(option.key)"></li>
                             </ul>
                         </div>
                     </div>
@@ -54,5 +54,6 @@
     </div>
 </div>
 <div class="navbar navbar-fixed-bottom text-center padding-bottom">
+    <!-- challengeCtrl.next() -->
     <button class="sbtn sbtn-submit" ng-click="challengeCtrl.submit();challengeCtrl.next()"></button>
 </div>

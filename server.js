@@ -1,13 +1,20 @@
 var express = require('express');
 var app = express();
 var api = require('./api.js').API;
+var cors = require('cors');
 
+// use cors
+app.use(cors())
+var corsOptions = {
+  origin: '*'
+}
+app.options('*', cors()) 
 app.get('/', home);
 app.get('/get/challenges', api.getChallenges);
 app.get('/get/dates', api.getDates)
 app.post('/update/meta', api.setMeta)
 app.patch('/update/lessons', api.updateLessons)
-app.post('/points', api.sendReport)
+app.post('/points',cors(), api.sendReport)
 
 app.use(express.static(__dirname + '/node_modules'));
 app.use(express.static(__dirname + '/bower_components'));

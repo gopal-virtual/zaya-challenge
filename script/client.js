@@ -187,8 +187,16 @@
         challengeCtrl.calculateScore = calculateScore;
         challengeCtrl.score = 0;
         challengeCtrl.getElapsedTime = getElapsedTime;
+        challengeCtrl.answerCorrect = answerCorrect;
+        challengeCtrl.selected = selected;
         $scope.closeRead = closeRead;
 
+        function selected (option, question) {
+            return (option.key == question.selected) && !challengeCtrl.result.hasOwnProperty(question.node.id)
+        }
+        function answerCorrect (id) {
+            return challengeCtrl.result.hasOwnProperty(id) && challengeCtrl.result[id]
+        }
         function openRead() {
             $(".button-float").trigger("click");
         }
@@ -233,7 +241,7 @@
         function submit() {
             var question = challengeCtrl.quiz.objects[challengeCtrl.currentIndex];
             challengeCtrl.result[question.node.id] = question.selected == question.node.type.answer[0] ? true : false;
-            challengeCtrl.calculateScore()
+            challengeCtrl.calculateScore();
         }
 
         function calculateScore() {
