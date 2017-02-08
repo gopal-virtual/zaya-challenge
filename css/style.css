@@ -39,6 +39,9 @@
     background-color: #FCF7EE;
     font-size : 24px;
 }
+.font-lg{
+  font-size : 3em;
+}
 .font-white{
     color : white;
 }
@@ -316,4 +319,15 @@ li.leaderboard-user .media-body > img {
 }
 .owl-theme .owl-dots .owl-dot.active span, .owl-theme .owl-dots .owl-dot:hover span {
     background: #1D80C3 !important;
+}
+#container {
+      width: 50vw;
+      height: 50vw;
+      position: relative;
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 30vh;
+}
+.inline-block{
+  display: inline-block;
 }

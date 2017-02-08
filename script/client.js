@@ -52,14 +52,24 @@
             controller: 'challengeController',
             controllerAs: 'challengeCtrl'
         }, {
-            name: 'result',
-            url: '/result',
+            name: 'resultAnimation',
+            url: '/result-animation',
             params: {
                 score: null,
                 time: null,
                 userid: null,
                 quizid: null,
                 token: null
+            },
+            templateUrl: '/result-animation.html',
+            controller: 'resultAnimateController',
+            controllerAs: 'resultAnimateCtrl'
+        },{
+            name: 'result',
+            url: '/result',
+            params: {
+                userid: null,
+                leaderboard : null
             },
             templateUrl: '/result.html',
             controller: 'resultController',
@@ -193,7 +203,7 @@
 
         function selected (option, question) {
             return (option.key == question.selected) && !challengeCtrl.result.hasOwnProperty(question.node.id)
-        }
+        }   
         function answerCorrect (id) {
             return challengeCtrl.result.hasOwnProperty(id) && challengeCtrl.result[id]
         }
@@ -259,7 +269,7 @@
             if (challengeCtrl.currentIndex < challengeCtrl.quiz.objects.length - 1) {
                 ++challengeCtrl.currentIndex
             } else {
-                $state.go('result', {
+                $state.go('resultAnimation', {
                     score: challengeCtrl.score,
                     time: challengeCtrl.getElapsedTime(true),
                     userid: $stateParams.userid,
@@ -275,17 +285,18 @@
     'use strict';
     angular
         .module('zayaChallenge')
-        .controller('resultController', resultController);
-    resultController.$inject = ['Rest', '$scope', 'utility', '$stateParams'];
+        .controller('resultAnimateController', resultAnimateController);
+    resultAnimateController.$inject = ['Rest', '$scope', 'utility', '$stateParams', '$timeout', '$state'];
     /* @ngInject */
-    function resultController(Rest, $scope, utility, $stateParams) {
-        var resultCtrl = this;
+    function resultAnimateController(Rest, $scope, utility, $stateParams, $timeout, $state) {
+        var resultAnimateCtrl = this;
         console.log($stateParams)
-        resultCtrl.points = $stateParams.score - $stateParams.time * 10;
-        resultCtrl.shareScore = shareScore;
+        resultAnimateCtrl.points = $stateParams.score - $stateParams.time * 10;
+        resultAnimateCtrl.progress = resultAnimateCtrl.points * 0.001;
+        console.log('progress :', resultAnimateCtrl.progress)
         Rest.sendReport($stateParams.userid, $stateParams.token, {
                 "action": "quiz_complete",
-                "score": resultCtrl.points,
+                "score": resultAnimateCtrl.points,
                 "content_type": "node",
                 "object_id": $stateParams.quizid,
             })
@@ -293,12 +304,36 @@
                 return Rest.getLeaderBoard($stateParams.userid, $stateParams.token)
             })
             .then(function successCallback(response) {
-                $scope.leaderboard = response.data;
+                // $scope.leaderboard = response.data;
+                $timeout(function(){
+                    $state.go('result', {
+                        userid: $stateParams.userid,
+                        leaderboard : response.data
+                    })
+                },1000)
                 console.log(response);
+
             }, function errorCallback(error) {
                 console.log(error)
             })
-
+    }
+})();
+(function() {
+    'use strict';
+    angular
+        .module('zayaChallenge')
+        .controller('resultController', resultController);
+    resultController.$inject = ['Rest', '$scope', 'utility', '$stateParams'];
+    /* @ngInject */
+    function resultController(Rest, $scope, utility, $stateParams) {
+        var resultCtrl = this;
+        $scope.leaderboard = $stateParams.leaderboard;
+        resultCtrl.shareScore = shareScore;
+        resultCtrl.goBacktoMap = goBacktoMap;
+        function goBacktoMap() {
+            console.log(window);
+            window.parent.postMessage('backToMap', '*');
+        }
         function shareScore(points) {
             window.parent.postMessage('share-'+points, '*');
         }
@@ -325,6 +360,56 @@
                     autoplay: true,
                     autoplayTimeout: 3000
                 });
+            })
+        }
+    }
+})();
+(function() {
+    'use strict';
+    angular
+        .module('zayaChallenge')
+        .directive('radialProgress', radialProgress);
+    /* @ngInject */
+    function radialProgress($timeout) {
+        var radialProgress = {
+            restrict: 'A',
+            link: linkFunc
+        };
+        return radialProgress;
+
+        function linkFunc(scope, el, attr, ctrl) {
+            $timeout(function() {
+                var bar = new ProgressBar.Circle(container, {
+                  color: '#aaa',
+                  // This has to be the same size as the maximum width to
+                  // prevent clipping
+                  strokeWidth: 4,
+                  trailWidth: 1,
+                  easing: 'easeInOut',
+                  duration: 1400,
+                  text: {
+                    autoStyleContainer: false
+                  },
+                  from: { color: '#ACACAC', width: 1 },
+                  to: { color: '#1CDA63', width: 4 },
+                  // Set default step function for all animate calls
+                  step: function(state, circle) {
+                    circle.path.setAttribute('stroke', state.color);
+                    circle.path.setAttribute('stroke-width', state.width);
+
+                    var value = Math.round(circle.value() * 100);
+                    if (value === 0) {
+                      circle.setText('');
+                    } else {
+                      circle.setText(value);
+                    }
+
+                  }
+                });
+                // bar.text.style.fontFamily = '"Raleway", Helvetica, sans-serif';
+                bar.text.style.fontSize = '4em';
+                bar.animate(scope.$eval(attr.radialProgress));  // Number from 0.0 to 1.0
+
             })
         }
     }
@@ -453,6 +538,7 @@
     angular
         .module('zayaChallenge')
         .run(run);
+
     run.$inject = ['$rootScope', '$state'];
 
     function run($rootScope, $state) {
@@ -467,6 +553,10 @@
                 $state.go('home')
             }
             if (toState.name == 'result' && !toParams.userid) {
+                event.preventDefault();
+                $state.go('home')
+            }
+            if (toState.name == 'resultAnimation' && !toParams.userid) {
                 event.preventDefault();
                 $state.go('home')
             }
