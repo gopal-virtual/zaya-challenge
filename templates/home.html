@@ -59,7 +59,7 @@
                                         </div> -->
                                     </div>
                                     <!-- ng-show="!challenge.meta.locked" -->
-                                    <div class="panel-footer text-center">
+                                    <div class="panel-footer text-center" ng-show="!challenge.meta.locked">
                                         <button class="sbtn sbtn-quiz" ng-click="homeCtrl.startChallenge(challenge.objects[0])"></button>
                                     </div>
                                 </div>

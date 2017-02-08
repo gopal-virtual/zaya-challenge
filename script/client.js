@@ -297,7 +297,7 @@
         Rest.sendReport($stateParams.userid, $stateParams.token, {
                 "action": "quiz_complete",
                 "score": resultAnimateCtrl.points,
-                "content_type": "node",
+                "content_type": "assessment",
                 "object_id": $stateParams.quizid,
             })
             .then(function successCallback(response) {
