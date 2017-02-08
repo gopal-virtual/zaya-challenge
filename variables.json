@@ -1,6 +1,6 @@
 {
   "current_date": "Wed Feb 15 2017 00:01:00 GMT+0530 (IST)",
-  "threshold": 15,
+  "threshold": 14  ,
   "range": {
     "0": {
       "start": "Mon Jan 30 2017 00:01:00 GMT+0530 (IST)",

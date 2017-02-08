@@ -7,14 +7,6 @@
             'ngSanitize'
         ]);
 })();
-// (function() {
-//     'use strict';
-//
-//     angular
-//         .module('zayaChallenge')
-//         .constant('SERVER', 'https://cc-test-2.zaya.in/api/v1');
-//
-// })();
 (function() {
     'use strict';
     angular
@@ -27,7 +19,20 @@
         });
         var states = [{
             name: 'home',
-            url: '/:accountid/:userid/:token',
+            url: '/:accountid/:userid/:token/?first_time',
+            params : {
+                first_time : null
+            },
+            onEnter : ['$stateParams', '$state', function($stateParams, $state){
+                if($stateParams.first_time){
+                    $state.go('guide',{
+                        accountid : $stateParams.accountid,
+                        userid : $stateParams.userid,
+                        token : $stateParams.token
+                    })
+                    return;
+                }
+            }],
             templateUrl: '/home.html',
             controller: 'homeController',
             controllerAs: 'homeCtrl'
@@ -77,6 +82,11 @@
         }, {
             name: 'guide',
             url: '/guide',
+            params : {
+                accountid : null,
+                userid : null,
+                token : null
+            },
             templateUrl: '/guide.html',
             controller: 'guideController',
             controllerAs: 'guideCtrl'
@@ -419,10 +429,13 @@
     angular
         .module('zayaChallenge')
         .controller('guideController', guideController);
-    guideController.$inject = [];
+    guideController.$inject = ['$stateParams'];
     /* @ngInject */
-    function guideController() {
+    function guideController($stateParams) {
         var guideCtrl = this;
+        guideCtrl.accountid = $stateParams.accountid;
+        guideCtrl.userid = $stateParams.userid;
+        guideCtrl.token = $stateParams.token;
     }
 })();
 (function() {
