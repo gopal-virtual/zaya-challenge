@@ -73,7 +73,8 @@
             url: '/result',
             params: {
                 userid: null,
-                leaderboard : null
+                leaderboard : null,
+                points : null
             },
             templateUrl: '/result.html',
             controller: 'resultController',
@@ -317,7 +318,8 @@
                 $timeout(function(){
                     $state.go('result', {
                         userid: $stateParams.userid,
-                        leaderboard : response.data
+                        leaderboard : response.data,
+                        points : resultAnimateCtrl.points
                     })
                 },1000)
                 console.log(response);
@@ -339,6 +341,7 @@
         $scope.leaderboard = $stateParams.leaderboard;
         resultCtrl.shareScore = shareScore;
         resultCtrl.goBacktoMap = goBacktoMap;
+        resultCtrl.points = $stateParams.points;
         function goBacktoMap() {
             console.log(window);
             window.parent.postMessage('backToMap', '*');
