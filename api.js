@@ -471,11 +471,11 @@ function getChallenges(req, res) {
             // else let it be as it is
             var idList = {};
             quizList.forEach(function(quiz){
-                if(!quiz.meta.locked){
-                    idList[quiz.node.id] = null;
+                if(!quiz.meta.locked && quiz.objects.length){
+                    // check if the quiz inside is taken or not !important
+                    idList[quiz.objects[0].node.id] = null;
                 }
             })
-
             var config = {
                 uri: server+'/profiles/'+ profileid +'/points/',
                 method: 'GET',
@@ -502,10 +502,13 @@ function getChallenges(req, res) {
                                 idList[point.object_id] = point
                             }
                         })
+                        console.log(idList)
                         quizList.forEach(function(quiz){
-                            if(idList.hasOwnProperty(quiz.node.id) && idList[quiz.node.id] != null){
+                            var length = quiz.objects.length;
+                            var id = length ? quiz.objects[0].node.id : false;
+                            if(length && idList.hasOwnProperty(id) && idList[id] != null){
                                 quiz.meta.attempted = true;
-                                quiz.meta.total_points_earned = idList[quiz.node.id].score;
+                                quiz.meta.total_points_earned = idList[id].score;
                             }
                         })
                     }
