@@ -50,9 +50,9 @@ function sendReport (req, res) {
             },
             json : points
         }
-        console.log(config)
+        // console.log(config)
         request(config, function(error, response, body){
-            console.log(body)
+            // console.log(body)
             if (!error) {
                 if (response.statusCode == '200') {
                     callback(null, body)
@@ -235,7 +235,7 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
         quiz['meta'] = {};
         quiz.meta['threshold'] = threshold;
         // console.log(current_date, start_date, current_date > start_date)
-        if (total_number_of_nodes > 0 && current_date > start_date) {
+        if (total_number_of_nodes > 0 && current_date >= start_date) {
             quiz.meta['active'] = true;
             quiz.meta['total_nodes_consumed'] = total_number_of_nodes >= threshold ? threshold : total_number_of_nodes;
             quiz.meta['locked'] = quiz.meta.total_nodes_consumed < threshold ? true : false;
@@ -252,6 +252,9 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
     // check whether they have a point already generated
     // if yes -> lock them, keep them active, i.e. true
     // else let it be as it is
+    quizList.forEach(function(quiz, index){
+        console.log(quiz.node.id)
+    })
 
     quizList[0].meta.active = !quizList[0].meta.active ? true : quizList[0].meta.active;
     // console.log(quizList)
@@ -440,7 +443,7 @@ function getChallenges(req, res) {
                     Authorization: token
                 }
             }
-            console.log(config)
+            // console.log(config)
             request(config, function(error, response, body) {
                 if (error) {
                     callback(JSON.stringify({
