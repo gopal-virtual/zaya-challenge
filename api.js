@@ -210,13 +210,13 @@ function setMeta (req, res) {
     });
 }
 function getDates(req, res) {
-var file = './variables.json'
-  utility.getMetaFile(file, function(data){
-      res.writeHead(200, {
-          'Content-Type': 'text/json'
-      });
-      res.end(data)
-  })
+    var file = './variables.json'
+      utility.getMetaFile(file, function(data){
+          res.writeHead(200, {
+              'Content-Type': 'text/json'
+          });
+          res.end(data)
+      })
 }
 
 
@@ -234,6 +234,8 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
         var start_date = new Date(date_range[index].start);
         quiz['meta'] = {};
         quiz.meta['threshold'] = threshold;
+        quiz.meta['attempted'] = false;
+        quiz.meta['total_points_earned'] = 0;
         // console.log(current_date, start_date, current_date > start_date)
         if (total_number_of_nodes > 0 && current_date >= start_date) {
             quiz.meta['active'] = true;
@@ -246,14 +248,6 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
             quiz.meta['active'] = false;
             quiz.meta['locked'] = true;
         }
-    })
-
-    // traverse the unlock nodes
-    // check whether they have a point already generated
-    // if yes -> lock them, keep them active, i.e. true
-    // else let it be as it is
-    quizList.forEach(function(quiz, index){
-        console.log(quiz.node.id)
     })
 
     quizList[0].meta.active = !quizList[0].meta.active ? true : quizList[0].meta.active;
@@ -291,7 +285,8 @@ function getChallenges(req, res) {
                 getProfileId,
                 getChallengeList,
                 getQuizList,
-                getFilteredQuizList
+                getFilteredQuizList,
+                oneTimeLock
             ], finalCallback);
         } else {
             res.writeHead(400, {
@@ -401,8 +396,6 @@ function getChallenges(req, res) {
             })
         }
 
-
-
         function getQuizList(profileid, challengeId, callback) {
             var config = {
                 uri: server+'/accounts/' + accountid + '/lessons/' + challengeId + '/',
@@ -457,7 +450,7 @@ function getChallenges(req, res) {
                         utility.getMetaFile('./variables.json',function(meta){
                             meta = JSON.parse(meta)
                             var quiz = API.processQuiz(JSON.parse(quizList), JSON.parse(body), meta.current_date, meta.range, meta.threshold)
-                            callback(null, JSON.stringify(quiz))
+                            callback(null, profileid, quiz)
                         })
                     } else {
                         callback(JSON.stringify({
@@ -469,6 +462,57 @@ function getChallenges(req, res) {
                     }
                 }
             })
+        }
+
+        function oneTimeLock(profileid, quizList, callback){
+            // traverse the unlock nodes
+            // check whether they have a point already generated
+            // if yes -> lock them, keep them active, i.e. true
+            // else let it be as it is
+            var idList = {};
+            quizList.forEach(function(quiz){
+                if(!quiz.meta.locked){
+                    idList[quiz.node.id] = null;
+                }
+            })
+
+            var config = {
+                uri: server+'/profiles/'+ profileid +'/points/',
+                method: 'GET',
+                qs : {
+                    object_id : Object.keys(idList).toString()
+                },
+                headers: {
+                    Authorization: token
+                }
+            };
+            request(config, function(error, response, body) {
+                if (error) {
+                    callback(JSON.stringify({
+                        'status': 400,
+                        'body': {
+                            'msg': error
+                        }
+                    }))
+                } else {
+                    var pointList = JSON.parse(body)
+                    if(pointList.length){
+                        pointList.forEach(function(point){
+                            if(idList.hasOwnProperty(point.object_id)){
+                                idList[point.object_id] = point
+                            }
+                        })
+                        quizList.forEach(function(quiz){
+                            if(idList.hasOwnProperty(quiz.node.id) && idList[quiz.node.id] != null){
+                                quiz.meta.attempted = true;
+                                quiz.meta.total_points_earned = idList[quiz.node.id].score;
+                            }
+                        })
+                    }
+                    callback(null, JSON.stringify(quizList))
+                }
+            })
+
         }
     }
 }

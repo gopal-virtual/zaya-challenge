@@ -2,8 +2,6 @@
 
     <div class="row">
         <div class="col-xs-12 col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 nav-bar-padding">
-    <!-- <button ng-click="homeCtrl.goBacktoMap()">Close</button> -->
-    <!-- <button ng-click="homeCtrl.share()">Share</button> -->
             <div>
                 <!-- Nav tabs -->
                
@@ -11,30 +9,18 @@
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane active" id="challenge">
                         <div ng-repeat="challenge in ::homeCtrl.challenges">
-<!--                             <div ng-if="challenge.meta.active">
-                                <div class="panel panel-ed">
-                                    <div class="panel-heading">
-                                        <h2>
-                                            {{:: challenge.node.title}}
-                                            {{:: challenge.meta.total_points_earned}}
-                                        </h2>
-                                    </div>
-                                </div>
-                            </div> -->
                             <div ng-if="challenge.meta.active">
                                 <div class="panel panel-ed">
-                                    <div class="panel-heading">
+                                    <div class="panel-heading" ng-class="{'attempted' : challenge.meta.attempted}">
                                         <h2>
                                             {{:: challenge.node.title}}
-                                            {{:: challenge.meta.total_points_earned}}
+                                            <span ng-show="challenge.meta.attempted" class="score">{{:: challenge.meta.total_points_earned}}</span>
                                         </h2>
                                     </div>
-                                    <div class="panel-body">
+                                    <div class="panel-body" ng-show="!challenge.meta.attempted">
                                         <div class="media">
                                             <div class="media-left">
                                                 <a href="#">
-                                                    <!-- <img class="media-object" src="..." alt="..."> -->
-                                                    <!-- <i class="media-object glyphicon glyphicon-ok-sign"></i> -->
                                                     <img ng-src="svg/icon-checkbox-{{challenge.meta.locked ? 'unchecked' : 'checked'}}.svg" alt="">
                                                 </a>
                                             </div>
@@ -60,7 +46,7 @@
                                         </div> -->
                                     </div>
                                     <!-- ng-show="!challenge.meta.locked" -->
-                                    <div class="panel-footer text-center" ng-show="!challenge.meta.locked">
+                                    <div class="panel-footer text-center" ng-show="!challenge.meta.locked && !challenge.meta.attempted">
                                         <button class="sbtn sbtn-quiz" ng-click="homeCtrl.startChallenge(challenge.objects[0])"></button>
                                     </div>
                                 </div>

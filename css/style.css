@@ -223,6 +223,23 @@ ul.option-group > li.option-group-item.right {
     border-radius : 20px 20px 0 0;
     text-align: center;
 }
+.panel.panel-ed:not(.inactive) .panel-heading.attempted{
+    border : 0;
+    background-color: white;
+    color : #1D80C3;
+    border-radius : 20px;
+    text-align: center;
+}
+.panel.panel-ed:not(.inactive) .panel-heading .score{
+    display: inline-block;
+    padding: 0 10px;
+    color: white;
+    background-color: #1D80C3;
+    text-align: center;
+    border-radius: 20px;
+    line-height: 44px;
+    height: 35px;
+}
 .panel-ed:not(.inactive) .panel-footer {
     border : 0;
     background-color: #A5CDED;
