@@ -1,7 +1,6 @@
 var request = require('request');
 var async = require('async');
 var utility = require('./utility.js').utility;
-// var meta = require('./variables.js').meta;
 var server = 'https://cc-test-2.zaya.in/api/v1';
 
 var API = {
@@ -10,7 +9,144 @@ var API = {
     getDates : getDates,
     setMeta : setMeta,
     updateLessons : updateLessons,
-    sendReport : sendReport
+    sendReport : sendReport,
+    syncChallenge : syncChallenge
+}
+
+var quizList;
+
+
+function getChallengeList(accountid, token, callback) {
+    var config = {
+        uri: server+'/accounts/' + accountid + '/challenges/',
+        method: 'GET',
+        headers: {
+            Authorization: token
+        }
+    };
+    request(config, function(error, response, body) {
+        if (error) {
+            callback(JSON.stringify({
+                'status': 400,
+                'body': {
+                    'msg': error
+                }
+            }));
+        } else {
+            if (response.statusCode == '200') {
+                var challenges = JSON.parse(body)
+                if (challenges.length) {
+
+                    // get challenge id list
+                    var challengeIdList = {};
+                    challenges.forEach(function(challenge){
+                        challengeIdList[challenge.type.grade] = {
+                            id : challenge.id
+                        }
+                    })
+
+                    // pass challenge id list to get quiz list
+                    callback(null, challengeIdList);
+                } else {
+                    callback(
+                        JSON.stringify({
+                            'status': 404,
+                            'body': {
+                                'msg': "no challenges found"
+                            }
+                        })
+                    )
+                }
+            } else {
+                callback(
+                    JSON.stringify({
+                        'status': response.statusCode,
+                        'body': {
+                            'msg': JSON.parse(body)
+                        }
+                    })
+                )
+            }
+        }
+    })
+}
+
+function getQuizList(accountid, token, challengeList, callback){
+    async.each(Object.keys(challengeList), function(grade, eachCallback) {
+        var config = {
+                uri: server+'/accounts/' + accountid + '/lessons/' + challengeList[grade].id + '/',
+                method: 'GET',
+                headers: {
+                    Authorization: token
+                }
+        };
+        request(config, function(error, response, body) {
+            if (error) {
+                eachCallback({
+                    status : 400,
+                    msg : error
+                })
+            } else {
+                if (response.statusCode == '200') {
+                    challengeList[grade]["quizList"] = JSON.parse(body).objects;
+                    eachCallback();
+                } else {
+                    eachCallback({
+                        status : response.statusCode,
+                        msg : body
+                    })
+                }
+            }
+        })
+
+    }, function(err) {
+        if( err ) {
+          callback(JSON.stringify(err))
+        } else {
+            callback(null, challengeList)
+        }
+    });
+}
+
+function syncQuizData(quizList, callback){
+    utility.writeFile('./quizlist.json', JSON.stringify(quizList), function(){
+        callback(null, quizList)
+    })
+}
+
+function respondSyncRequest(responseObj, error, result){
+    if(!error){
+        quizList = result;
+        responseObj.writeHead(200, {'Content-Type': 'text/json'});
+        responseObj.end(JSON.stringify(result))
+    }
+    else{
+        responseObj.writeHead(400, {'Content-Type': 'text/json'});
+        responseObj.end(JSON.stringify(error))   
+    }
+}
+
+function syncChallenge (req, res) {
+
+    if(req.query.accountid && req.headers.authorization){
+        async.waterfall([
+            function(callback){
+                getChallengeList(req.query.accountid, req.headers.authorization, callback)
+            },
+            function(challengeIdList, callback){
+                getQuizList(req.query.accountid, req.headers.authorization, challengeIdList, callback)
+            },
+            syncQuizData
+        ], function(error, callback){
+            respondSyncRequest(res, error, callback)
+        });
+    }
+    else {
+        res.writeHead(400, {
+            'Content-Type': 'text/json'
+        });
+        res.end("account id or token is missing")
+    }
 }
 
 function getIdList(list){
@@ -273,19 +409,28 @@ function getChallenges(req, res) {
     } else {
 
         var token = 'Token ' + req.headers.authorization.split(' ')[1];
+        var grade = req.query.grade;
         var accountid = req.query.account;
         var clientid = req.query.profile;
 
 
-        if (accountid && clientid) {
+        if (accountid && clientid && grade) {
             /* pass output from one function to the other one in
                 the chain using waterfall method of async library
             */
             async.waterfall([
                 getProfileId,
-                getChallengeList,
-                getQuizList,
-                getFilteredQuizList,
+                // getChallengeList,
+                // getQuizList,
+                function(profileId, callback){
+                    // read from file
+                    // utility.getFile('./quizList.json', function(quizList){
+                    //     quizList = JSON.parse(quizList)[grade]["quizList"];
+                    //     console.log(quizList)
+                    //     getFilteredQuizList(profileId, quizList[grade]["quizList"], callback)
+                    // })    
+                    getFilteredQuizList(profileId, quizList[grade]["quizList"], callback)
+                },
                 oneTimeLock
             ], finalCallback);
         } else {
@@ -293,7 +438,7 @@ function getChallenges(req, res) {
                 'Content-Type': 'text/json'
             });
             return res.end(JSON.stringify({
-                'missing': 'account_id or profile_id is not provided'
+                'missing': 'account_id or profile_id or grade is not provided'
             }))
         }
 
@@ -349,6 +494,8 @@ function getChallenges(req, res) {
                 }
             })
         }
+
+        /*
 
         function getChallengeList(profileid, callback) {
             var config = {
@@ -427,6 +574,7 @@ function getChallenges(req, res) {
                 }
             })
         }
+        */
 
         function getFilteredQuizList(profileid, quizList, callback) {
             var config = {
@@ -449,7 +597,8 @@ function getChallenges(req, res) {
                     if (response.statusCode == '200') {
                         utility.getMetaFile('./variables.json',function(meta){
                             meta = JSON.parse(meta)
-                            var quiz = API.processQuiz(JSON.parse(quizList), JSON.parse(body), meta.current_date, meta.range, meta.threshold)
+                            pointList = JSON.parse(body)
+                            var quiz = API.processQuiz(quizList, pointList, meta.current_date, meta.range, meta.threshold)
                             callback(null, profileid, quiz)
                         })
                     } else {

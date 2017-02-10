@@ -1,7 +1,9 @@
 var fs = require("fs");
 var utility = {
-    getMetaFile : getMetaFile,
-    setMetaFile : setMetaFile
+    getMetaFile : getMetaFile, // alias to read file
+    setMetaFile : setMetaFile, // alias to write to file
+    writeFile : setMetaFile,
+    getFile : getMetaFile
 }
 function setMetaFile(file, content, callback) {
     fs.writeFile(file, content, 'utf8', function(err) {

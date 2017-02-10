@@ -11,6 +11,7 @@ var corsOptions = {
 app.options('*', cors()) 
 app.get('/', home);
 app.get('/get/challenges', api.getChallenges);
+app.post('/sync/challenge', api.syncChallenge)
 app.get('/get/dates', api.getDates)
 app.post('/update/meta', api.setMeta)
 app.patch('/update/lessons', api.updateLessons)
