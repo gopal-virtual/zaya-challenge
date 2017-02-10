@@ -19,16 +19,19 @@
         });
         var states = [{
             name: 'home',
-            url: '/:accountid/:userid/:token/?first_time',
+            url: '/:accountid/:userid/:token/?first_time&grade',
             params : {
-                first_time : null
+                first_time : null,
+                grade : null
             },
             onEnter : ['$stateParams', '$state', function($stateParams, $state){
+                console.log('onenter', $stateParams)
                 if($stateParams.first_time=='true'){
                     $state.go('guide',{
                         accountid : $stateParams.accountid,
                         userid : $stateParams.userid,
-                        token : $stateParams.token
+                        token : $stateParams.token,
+                        grade : $stateParams.grade
                     })
                 }
             }],
@@ -85,7 +88,8 @@
             params : {
                 accountid : null,
                 userid : null,
-                token : null
+                token : null,
+                grade : null
             },
             templateUrl: '/guide.html',
             controller: 'guideController',
@@ -113,9 +117,9 @@
             console.log(window);
             window.parent.postMessage('backToMap', '*');
         }
-        $stateParams.accountid && $stateParams.userid && $stateParams.token &&
+        $stateParams.accountid && $stateParams.userid && $stateParams.token && $stateParams.grade
             Rest
-            .getChallenges($stateParams.accountid, $stateParams.userid, $stateParams.token)
+            .getChallenges($stateParams.accountid, $stateParams.userid, $stateParams.token, $stateParams.grade)
             .then(function successCallback(response) {
                 homeCtrl.challenges = response.data;
             }, function errorCallback(error) {
@@ -438,6 +442,7 @@
         guideCtrl.accountid = $stateParams.accountid;
         guideCtrl.userid = $stateParams.userid;
         guideCtrl.token = $stateParams.token;
+        guideCtrl.grade = $stateParams.grade;
     }
 })();
 (function() {
@@ -523,7 +528,7 @@
             })
         }
 
-        function getChallenges(accountid, userid, token) {
+        function getChallenges(accountid, userid, token, grade) {
             return $http({
                 method: 'GET',
                 url: '/get/challenges',
@@ -532,7 +537,8 @@
                 },
                 params: {
                     account: accountid,
-                    profile: userid
+                    profile: userid,
+                    grade : grade
                 }
             })
         }
