@@ -149,13 +149,7 @@ function syncChallenge (req, res) {
     }
 }
 
-function getIdList(list){
-    var idlist = [];
-    list.forEach(function(item){
-        idlist.push(item.id)
-    })
-    return idlist;
-}
+
 
 function sendReport (req, res) {
     var jsonString = '';
@@ -273,8 +267,16 @@ function sendReport (req, res) {
         });
         return res.end(result);
     }
-
 }
+
+function getIdList(list){
+    var idlist = [];
+    list.forEach(function(item){
+        idlist.push(item.id)
+    })
+    return idlist;
+}
+
 function updateLessons (req, res) {
     if(req.query.accountid && req.headers.authorization){
         var token = 'Token ' + req.headers.authorization.split(' ')[1];
@@ -345,6 +347,7 @@ function setMeta (req, res) {
         })
     });
 }
+
 function getDates(req, res) {
     var file = './variables.json'
       utility.getMetaFile(file, function(data){
@@ -397,6 +400,148 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
  ****************************
  ****************************
  */
+ function responseChallengeList(responseObj, err, modifiedQuizList) {
+    if (err) {
+        err = JSON.parse(err)
+        responseObj.writeHead(err.status, {
+            'Content-Type': 'text/json'
+        });
+        return responseObj.end(JSON.stringify(err.body));
+    }
+    responseObj.writeHead(200, {
+        'Content-Type': 'text/json'
+    });
+    return responseObj.end(modifiedQuizList);
+}
+
+function getProfileId(clientid, token, callback) {
+    var config = {
+        uri: server+'/profiles',
+        method: 'GET',
+        qs : {
+            client_uid : clientid
+        },
+        headers: {
+            Authorization: token
+        }
+    };
+    request(config, function(error, response, body) {
+        if (error) {
+            callback(JSON.stringify({
+                'status': 400,
+                'body': {
+                    'msg': error
+                }
+            }))
+        } else {
+            var profile = JSON.parse(body)
+            if(profile.length){
+                callback(null, profile[0].id)
+            }
+            else{
+                callback(JSON.stringify({
+                    'status': 404,
+                    'body': {
+                        'msg': 'No profile found'
+                    }
+                }))
+            }
+        }
+    })
+}
+
+
+function getFilteredQuizList(token, profileid, quizList, callback) {
+    var config = {
+        uri: server+'/profiles/' + profileid + '/points/',
+        method: 'GET',
+        headers: {
+            Authorization: token
+        }
+    }
+    // console.log(config)
+    request(config, function(error, response, body) {
+        if (error) {
+            callback(JSON.stringify({
+                'status': 400,
+                'body': {
+                    'msg': error
+                }
+            }))
+        } else {
+            if (response.statusCode == '200') {
+                utility.getMetaFile('./variables.json',function(meta){
+                    meta = JSON.parse(meta)
+                    var pointList = JSON.parse(body)
+                    var quiz = API.processQuiz(quizList, pointList, meta.current_date, meta.range, meta.threshold)
+                    callback(null, profileid, quiz)
+                })
+            } else {
+                callback(JSON.stringify({
+                    'status': response.statusCode,
+                    'body': {
+                        'msg': 'no points found'
+                    }
+                }))
+            }
+        }
+    })
+}
+
+function oneTimeLock(token, profileid, quizList, callback){
+    // traverse the unlock nodes
+    // check whether they have a point already generated
+    // if yes -> lock them, keep them active, i.e. true
+    // else let it be as it is
+    var idList = {};
+    quizList.forEach(function(quiz){
+        if(!quiz.meta.locked && quiz.objects.length){
+            // check if the quiz inside is taken or not !important
+            idList[quiz.objects[0].node.id] = null;
+        }
+    })
+    var config = {
+        uri: server+'/profiles/'+ profileid +'/points/',
+        method: 'GET',
+        qs : {
+            object_id : Object.keys(idList).toString()
+        },
+        headers: {
+            Authorization: token
+        }
+    };
+    request(config, function(error, response, body) {
+        if (error) {
+            callback(JSON.stringify({
+                'status': 400,
+                'body': {
+                    'msg': error
+                }
+            }))
+        } else {
+            var pointList = JSON.parse(body)
+            if(pointList.length){
+                pointList.forEach(function(point){
+                    if(idList.hasOwnProperty(point.object_id)){
+                        idList[point.object_id] = point
+                    }
+                })
+                console.log(idList)
+                quizList.forEach(function(quiz){
+                    var length = quiz.objects.length;
+                    var id = length ? quiz.objects[0].node.id : false;
+                    if(length && idList.hasOwnProperty(id) && idList[id] != null){
+                        quiz.meta.attempted = true;
+                        quiz.meta.total_points_earned = idList[id].score;
+                    }
+                })
+            }
+            callback(null, JSON.stringify(quizList))
+        }
+    })
+
+}
+
 function getChallenges(req, res) {
 
     if (!req.headers.authorization) {
@@ -415,24 +560,22 @@ function getChallenges(req, res) {
 
 
         if (accountid && clientid && grade) {
-            /* pass output from one function to the other one in
+            /* Why by gopal : pass output from one function to the other one in
                 the chain using waterfall method of async library
             */
             async.waterfall([
-                getProfileId,
-                // getChallengeList,
-                // getQuizList,
-                function(profileId, callback){
-                    // read from file
-                    // utility.getFile('./quizList.json', function(quizList){
-                    //     quizList = JSON.parse(quizList)[grade]["quizList"];
-                    //     console.log(quizList)
-                    //     getFilteredQuizList(profileId, quizList[grade]["quizList"], callback)
-                    // })    
-                    getFilteredQuizList(profileId, quizList[grade]["quizList"], callback)
+                function(callback){
+                    getProfileId(clientid, token, callback)
                 },
-                oneTimeLock
-            ], finalCallback);
+                function(profileId, callback){
+                    getFilteredQuizList(token, profileId, quizList[grade]["quizList"], callback)
+                },
+                function(profileid, quizList, callback){
+                    oneTimeLock(token, profileid, quizList, callback)
+                }
+            ], function(err, result){
+                responseChallengeList(res, err, result)
+            });
         } else {
             res.writeHead(400, {
                 'Content-Type': 'text/json'
@@ -441,231 +584,7 @@ function getChallenges(req, res) {
                 'missing': 'account_id or profile_id or grade is not provided'
             }))
         }
-
-
-
-        function finalCallback(err, result) {
-            if (err) {
-                err = JSON.parse(err)
-                res.writeHead(err.status, {
-                    'Content-Type': 'text/json'
-                });
-                return res.end(JSON.stringify(err.body));
-            }
-            res.writeHead(200, {
-                'Content-Type': 'text/json'
-            });
-            return res.end(result);
-        }
-
-        function getProfileId(callback) {
-            var config = {
-                uri: server+'/profiles',
-                method: 'GET',
-                qs : {
-                    client_uid : clientid
-                },
-                headers: {
-                    Authorization: token
-                }
-            };
-            request(config, function(error, response, body) {
-                if (error) {
-                    callback(JSON.stringify({
-                        'status': 400,
-                        'body': {
-                            'msg': error
-                        }
-                    }))
-                } else {
-                    body = JSON.parse(body)
-                    // console.log(body)
-                    if(body.length){
-                        callback(null, body[0].id)
-                    }
-                    else{
-                        callback(JSON.stringify({
-                            'status': 404,
-                            'body': {
-                                'msg': 'No profile found'
-                            }
-                        }))
-                    }
-                }
-            })
-        }
-
-        /*
-
-        function getChallengeList(profileid, callback) {
-            var config = {
-                uri: server+'/accounts/' + accountid + '/challenges/',
-                method: 'GET',
-                headers: {
-                    Authorization: token
-                }
-            };
-            request(config, function(error, response, body) {
-                if (error) {
-                    callback(JSON.stringify({
-                        'status': 400,
-                        'body': {
-                            'msg': error
-                        }
-                    }));
-                } else {
-                    if (response.statusCode == '200') {
-                        var challenges = JSON.parse(body)
-                        if (challenges.length) {
-                            var challengeId = challenges[0].id;
-                            callback(null, profileid, challengeId);
-                        } else {
-                            callback(
-                                JSON.stringify({
-                                    'status': 404,
-                                    'body': {
-                                        'msg': "no challenges found"
-                                    }
-                                })
-                            )
-                        }
-                    } else {
-                        callback(
-                            JSON.stringify({
-                                'status': response.statusCode,
-                                'body': {
-                                    'msg': JSON.parse(body)
-                                }
-                            })
-                        )
-                    }
-                }
-            })
-        }
-
-        function getQuizList(profileid, challengeId, callback) {
-            var config = {
-                uri: server+'/accounts/' + accountid + '/lessons/' + challengeId + '/',
-                method: 'GET',
-                headers: {
-                    Authorization: token
-                }
-            };
-            request(config, function(error, response, body) {
-                if (error) {
-                    callback(JSON.stringify({
-                        'status': 400,
-                        'body': {
-                            'msg': error
-                        }
-                    }))
-                } else {
-                    if (response.statusCode == '200') {
-                        body = JSON.parse(body).objects;
-                        callback(null, profileid, JSON.stringify(body))
-                    } else {
-                        callback(JSON.stringify({
-                            'status': response.statusCode,
-                            'body': {
-                                'msg': JSON.parse(body)
-                            }
-                        }))
-                    }
-                }
-            })
-        }
-        */
-
-        function getFilteredQuizList(profileid, quizList, callback) {
-            var config = {
-                uri: server+'/profiles/' + profileid + '/points/',
-                method: 'GET',
-                headers: {
-                    Authorization: token
-                }
-            }
-            // console.log(config)
-            request(config, function(error, response, body) {
-                if (error) {
-                    callback(JSON.stringify({
-                        'status': 400,
-                        'body': {
-                            'msg': error
-                        }
-                    }))
-                } else {
-                    if (response.statusCode == '200') {
-                        utility.getMetaFile('./variables.json',function(meta){
-                            meta = JSON.parse(meta)
-                            pointList = JSON.parse(body)
-                            var quiz = API.processQuiz(quizList, pointList, meta.current_date, meta.range, meta.threshold)
-                            callback(null, profileid, quiz)
-                        })
-                    } else {
-                        callback(JSON.stringify({
-                            'status': response.statusCode,
-                            'body': {
-                                'msg': 'no points found'
-                            }
-                        }))
-                    }
-                }
-            })
-        }
-
-        function oneTimeLock(profileid, quizList, callback){
-            // traverse the unlock nodes
-            // check whether they have a point already generated
-            // if yes -> lock them, keep them active, i.e. true
-            // else let it be as it is
-            var idList = {};
-            quizList.forEach(function(quiz){
-                if(!quiz.meta.locked && quiz.objects.length){
-                    // check if the quiz inside is taken or not !important
-                    idList[quiz.objects[0].node.id] = null;
-                }
-            })
-            var config = {
-                uri: server+'/profiles/'+ profileid +'/points/',
-                method: 'GET',
-                qs : {
-                    object_id : Object.keys(idList).toString()
-                },
-                headers: {
-                    Authorization: token
-                }
-            };
-            request(config, function(error, response, body) {
-                if (error) {
-                    callback(JSON.stringify({
-                        'status': 400,
-                        'body': {
-                            'msg': error
-                        }
-                    }))
-                } else {
-                    var pointList = JSON.parse(body)
-                    if(pointList.length){
-                        pointList.forEach(function(point){
-                            if(idList.hasOwnProperty(point.object_id)){
-                                idList[point.object_id] = point
-                            }
-                        })
-                        console.log(idList)
-                        quizList.forEach(function(quiz){
-                            var length = quiz.objects.length;
-                            var id = length ? quiz.objects[0].node.id : false;
-                            if(length && idList.hasOwnProperty(id) && idList[id] != null){
-                                quiz.meta.attempted = true;
-                                quiz.meta.total_points_earned = idList[id].score;
-                            }
-                        })
-                    }
-                    callback(null, JSON.stringify(quizList))
-                }
-            })
-
-        }
+        
     }
 }
 
