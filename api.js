@@ -574,7 +574,8 @@ function getChallenges(req, res) {
                     else {
                         // fallback : if quizlist does not exists in memory, fetch from file
                         utility.getFile('./quizlist.json', function(quizList){
-                            getFilteredQuizList(token, profileId, JSON.parse(quizList)[grade]["quizList"], callback)
+                            quizList = JSON.parse(quizList);
+                            getFilteredQuizList(token, profileId, quizList[grade]["quizList"], callback)
                         })
                     }
                 },
