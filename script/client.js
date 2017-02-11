@@ -162,11 +162,23 @@
     angular
         .module('zayaChallenge')
         .controller('dateController', dateController);
-    dateController.$inject = ['Rest'];
+    dateController.$inject = ['Rest', 'CONSTANT'];
     /* @ngInject */
-    function dateController(Rest) {
+    function dateController(Rest, CONSTANT) {
         var dateCtrl = this;
         dateCtrl.setMeta = setMeta;
+        dateCtrl.syncChallenge = syncChallenge;
+        function syncChallenge() {
+            var $btn = $('#syncBtn').button('loading')
+            Rest.syncChallenge(CONSTANT.ELL_ACCOUNT_ID)
+                .then(function successCallback(response) {
+                    $btn.button('reset')
+                    console.log(response);
+                }, function errorCallback(error) {
+                    $btn.button('reset')
+                    console.log(error)
+                })
+        }
         Rest.getDates()
             .then(function successCallback(response) {
                 dateCtrl.meta = response.data;
@@ -176,12 +188,16 @@
             })
 
         function setMeta(data) {
+            var $btn = $('#saveBtn').button('loading')
             console.log(data)
+            
             Rest.setMeta(data)
                 .then(function successCallback(response) {
                     dateCtrl.meta = response.data;
+                    $btn.button('reset')
                     console.log(response);
                 }, function errorCallback(error) {
+                    $btn.button('reset')
                     console.log(error)
                 })
         }
@@ -486,8 +502,19 @@
             getDates: getDates,
             setMeta: setMeta,
             getProfileId: getProfileId,
+            syncChallenge : syncChallenge
         };
         return Rest;
+
+        function syncChallenge(accountid){
+            return $http({
+                url: '/sync/challenge',
+                method: 'POST',
+                params: {
+                    accountid : accountid
+                }
+            })
+        }
 
         function getProfileId(clientid, token, callback) {
             return $http({
@@ -773,6 +800,7 @@
         .module('zayaChallenge')
         .constant('CONSTANT', {
             'SERVER': 'https://cc-test-2.zaya.in/api/v1',
+            'ELL_ACCOUNT_ID' : '0429fb91-4f3c-47de-9adb-609996962188',
             'WIDGETS': {
                 'SPEAKER_IMAGE': '<div class="sound-image sbtn sbtn-sound"></div>',
                 'SPEAKER_IMAGE_SELECTED': '<div class="sound-image sbtn sbtn-sound activated animation-repeat-bounce"></div>',

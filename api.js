@@ -14,7 +14,7 @@ var API = {
 }
 
 var quizList;
-
+var ell_token = "Token 730c311c6c1c0e056405704314465c9849f1e121";
 
 function getChallengeList(accountid, token, callback) {
     var config = {
@@ -25,6 +25,7 @@ function getChallengeList(accountid, token, callback) {
         }
     };
     request(config, function(error, response, body) {
+        console.log(config, response.statusCode)
         if (error) {
             callback(JSON.stringify({
                 'status': 400,
@@ -62,7 +63,7 @@ function getChallengeList(accountid, token, callback) {
                     JSON.stringify({
                         'status': response.statusCode,
                         'body': {
-                            'msg': JSON.parse(body)
+                            'msg': body
                         }
                     })
                 )
@@ -80,6 +81,7 @@ function getQuizList(accountid, token, challengeList, callback){
                     Authorization: token
                 }
         };
+        console.log(config)
         request(config, function(error, response, body) {
             if (error) {
                 eachCallback({
@@ -122,19 +124,19 @@ function respondSyncRequest(responseObj, error, result){
     }
     else{
         responseObj.writeHead(400, {'Content-Type': 'text/json'});
-        responseObj.end(JSON.stringify(error))   
+        responseObj.end(error)   
     }
 }
 
 function syncChallenge (req, res) {
 
-    if(req.query.accountid && req.headers.authorization){
+    if(req.query.accountid){
         async.waterfall([
             function(callback){
-                getChallengeList(req.query.accountid, req.headers.authorization, callback)
+                getChallengeList(req.query.accountid, ell_token, callback)
             },
             function(challengeIdList, callback){
-                getQuizList(req.query.accountid, req.headers.authorization, challengeIdList, callback)
+                getQuizList(req.query.accountid, ell_token, challengeIdList, callback)
             },
             syncQuizData
         ], function(error, callback){
@@ -148,8 +150,6 @@ function syncChallenge (req, res) {
         res.end("account id or token is missing")
     }
 }
-
-
 
 function sendReport (req, res) {
     var jsonString = '';
@@ -526,7 +526,7 @@ function oneTimeLock(token, profileid, quizList, callback){
                         idList[point.object_id] = point
                     }
                 })
-                console.log(idList)
+                // console.log(idList)
                 quizList.forEach(function(quiz){
                     var length = quiz.objects.length;
                     var id = length ? quiz.objects[0].node.id : false;
@@ -568,7 +568,15 @@ function getChallenges(req, res) {
                     getProfileId(clientid, token, callback)
                 },
                 function(profileId, callback){
-                    getFilteredQuizList(token, profileId, quizList[grade]["quizList"], callback)
+                    if(quizList){
+                        getFilteredQuizList(token, profileId, quizList[grade]["quizList"], callback)
+                    }
+                    else {
+                        // fallback : if quizlist does not exists in memory, fetch from file
+                        utility.getFile('./quizlist.json', function(quizList){
+                            getFilteredQuizList(token, profileId, JSON.parse(quizList)[grade]["quizList"], callback)
+                        })
+                    }
                 },
                 function(profileid, quizList, callback){
                     oneTimeLock(token, profileid, quizList, callback)

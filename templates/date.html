@@ -18,7 +18,10 @@
                     <input type="text" class="form-control" placeholder="date" ng-model="challenge.end">
                 </div>
                 <div class="form-group">
-                    <button class="btn btn-primary" type="submit">Save</button>
+                    <button class="btn btn-primary" type="submit" id="saveBtn" data-loading-text="Saving..." class="btn btn-primary" autocomplete="off">Save</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-warning" type="button" id="syncBtn" data-loading-text="Syncing..." class="btn btn-primary" autocomplete="off" ng-click="dateCtrl.syncChallenge()">Sync</button>
                 </div>
             </form>
         </div>
