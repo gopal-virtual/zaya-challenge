@@ -165,13 +165,13 @@ function sendReport (req, res) {
                 function(callback){
                     getProfileIdfromClientId(data, callback)
                 },
-                getPoints
+                setPoints
             ], sendResponse);
 
 
     })
 
-    function getPoints(profile_id, points, callback){
+    function setPoints(profile_id, points, callback){
         var config = {
             uri : server+'/profiles/' + profile_id + '/points/',
             method: 'POST',
@@ -366,9 +366,9 @@ function getDates(req, res) {
 function processQuiz(quizList, pointList, current_date, date_range, threshold) {
     // accumulate the scores and distribute, and unlock it accordingly
     var total_number_of_nodes = pointList.length;
-    var current_date = new Date(current_date) || new Date();
+    var current_date = current_date ? new Date(current_date) : new Date();
     var totalPoints, totalNodes, currentIndex;
-
+    console.log('current_date',current_date);
     quizList.forEach(function(quiz, index) {
         var start_date = new Date(date_range[index].start);
         quiz['meta'] = {};
@@ -376,7 +376,7 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
         quiz.meta['attempted'] = false;
         quiz.meta['total_points_earned'] = 0;
         // console.log(current_date, start_date, current_date > start_date)
-        if (total_number_of_nodes > 0 && current_date >= start_date) {
+        if (total_number_of_nodes >= 0 && current_date >= start_date) {
             quiz.meta['active'] = true;
             quiz.meta['total_nodes_consumed'] = total_number_of_nodes >= threshold ? threshold : total_number_of_nodes;
             quiz.meta['locked'] = quiz.meta.total_nodes_consumed < threshold ? true : false;
@@ -452,39 +452,47 @@ function getProfileId(clientid, token, callback) {
 
 
 function getFilteredQuizList(token, profileid, quizList, callback) {
-    var config = {
-        uri: server+'/profiles/' + profileid + '/points/',
-        method: 'GET',
-        headers: {
-            Authorization: token
-        }
-    }
-    // console.log(config)
-    request(config, function(error, response, body) {
-        if (error) {
-            callback(JSON.stringify({
-                'status': 400,
-                'body': {
-                    'msg': error
-                }
-            }))
-        } else {
-            if (response.statusCode == '200') {
-                utility.getMetaFile('./variables.json',function(meta){
-                    meta = JSON.parse(meta)
-                    var pointList = JSON.parse(body)
-                    var quiz = API.processQuiz(quizList, pointList, meta.current_date, meta.range, meta.threshold)
-                    callback(null, profileid, quiz)
-                })
-            } else {
-                callback(JSON.stringify({
-                    'status': response.statusCode,
-                    'body': {
-                        'msg': 'no points found'
-                    }
-                }))
+    // from_date=2017-02-09&till_date=2017-02-10&action=node_complete
+    utility.getMetaFile('./variables.json',function(meta){
+        meta = JSON.parse(meta);
+        var config = {
+            uri: server+'/profiles/' + profileid + '/points/',
+            method: 'GET',
+            headers: {
+                Authorization: token
+            },
+            qs : {
+                from_date : meta.range["0"].start_date,
+                till_date : meta.range["0"].end_date,
+                action : 'node_complete'
             }
         }
+        // console.log(config)
+        request(config, function(error, response, body) {
+            if (error) {
+                callback(JSON.stringify({
+                    'status': 400,
+                    'body': {
+                        'msg': error
+                    }
+                }))
+            } else {
+                if (response.statusCode == '200') {
+                        var pointList = JSON.parse(body)
+                        // console.log(pointList)
+                        meta.current_date = meta.current_date == 'false' ? false : meta.current_date;
+                        var quiz = API.processQuiz(quizList, pointList, meta.current_date, meta.range, meta.threshold)
+                        callback(null, profileid, quiz)
+                } else {
+                    callback(JSON.stringify({
+                        'status': response.statusCode,
+                        'body': {
+                            'msg': 'no points found'
+                        }
+                    }))
+                }
+            }
+        })
     })
 }
 
@@ -558,16 +566,17 @@ function getChallenges(req, res) {
         var accountid = req.query.account;
         var clientid = req.query.profile;
 
-
         if (accountid && clientid && grade) {
             /* Why by gopal : pass output from one function to the other one in
                 the chain using waterfall method of async library
             */
+
             async.waterfall([
                 function(callback){
                     getProfileId(clientid, token, callback)
                 },
                 function(profileId, callback){
+
                     if(quizList){
                         getFilteredQuizList(token, profileId, quizList[grade]["quizList"], callback)
                     }

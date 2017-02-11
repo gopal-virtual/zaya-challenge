@@ -135,6 +135,11 @@ body{
   width: 120px;
   height: 38px;
 }
+.sbtn-map-small{
+  background: url('/svg/button-map-small.svg');
+  width: 120px;
+  height: 38px;
+}
 .sbtn-quiz-yellow{
   background: url('/svg/button-quiz-yellow.svg');
 }

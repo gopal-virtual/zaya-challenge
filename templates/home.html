@@ -25,7 +25,7 @@
                                                 </a>
                                             </div>
                                             <div class="media-body">
-                                                <h3 class="media-heading font-dark-blue" ng-bind="::'Goal : Complete '+challenge.meta.threshold+' lessons'"></h3>
+                                                <h3 class="media-heading font-dark-blue" ng-bind="::'Complete '+challenge.meta.threshold+' lessons'"></h3>
                                                 <div class="progress">
                                                     <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{::homeCtrl.getProgress(challenge.meta.total_nodes_consumed, challenge.meta.threshold)}}" aria-valuemin="0" aria-valuemax="100" style="width: {{::homeCtrl.getProgress(challenge.meta.total_nodes_consumed, challenge.meta.threshold)}}%">
                                                         {{::challenge.meta.total_nodes_consumed}}
@@ -86,6 +86,6 @@
     <button class="sbtn sbtn-back" ng-click="homeCtrl.goBacktoMap()"></button>
 </div> -->
 <div class="navbar navbar-fixed-bottom text-center padding-bottom">
-    <button class="sbtn sbtn-next-small" ng-click="homeCtrl.goBacktoMap()"></button>
+    <button class="sbtn sbtn-map-small" ng-click="homeCtrl.goBacktoMap()"></button>
     <button ng-show="homeCtrl.showLeaderBoard"class="sbtn sbtn-share" ng-click="homeCtrl.shareScore(homeCtrl.points)" ></button>
 </div>
