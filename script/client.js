@@ -126,14 +126,14 @@
                 referal_code : homeCtrl.referalCode
             }
             console.log(sharedata)
-            window.parent.postMessage(sharedata);
+            window.parent.postMessage(sharedata,"*");
         }
 
         function goBacktoMap() {
             console.log(window);
             window.parent.postMessage({
                 name : "backToMap"
-            });
+            },"*");
         }
         $stateParams.accountid && $stateParams.userid && $stateParams.token && $stateParams.grade
             Rest
@@ -151,7 +151,9 @@
                 Rest.getLeaderBoard($stateParams.userid, $stateParams.token)
                     .then(function(response) {
                         $scope.leaderboard = response.data;
-                        homeCtrl.points = $scope.leaderboard.leaderboard[$scope.leaderboard.profile_rank]['total_score']
+                        homeCtrl.points = $scope.leaderboard.leaderboard[$scope.leaderboard.profile_rank] ? 
+                              $scope.leaderboard.leaderboard[$scope.leaderboard.profile_rank]['total_score']
+                            : 0;
                     }, function(error) {
                         console.log(error)
                     })
@@ -387,13 +389,15 @@
         $scope.leaderboard = $stateParams.leaderboard;
         resultCtrl.shareScore = shareScore;
         resultCtrl.goBacktoMap = goBacktoMap;
-        resultCtrl.points = $scope.leaderboard.leaderboard[$scope.leaderboard.profile_rank]['total_score'];
+        resultCtrl.points = $scope.leaderboard.leaderboard[$scope.leaderboard.profile_rank] ? 
+            $scope.leaderboard.leaderboard[$scope.leaderboard.profile_rank]['total_score']
+            : 0;
         function goBacktoMap() {
             console.log(window);
 
             window.parent.postMessage({
                 name : 'backToMap'
-            });
+            },"*");
         }
         function shareScore(points) {
             var shareData = {
@@ -402,7 +406,7 @@
                 referal_code : $stateParams.referalCode
             };
             console.log(shareData)
-            window.parent.postMessage(shareData);
+            window.parent.postMessage(shareData,"*");
         }
         $scope.mapRank = utility.mapRank;
     }
