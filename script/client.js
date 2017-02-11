@@ -53,7 +53,9 @@
             params: {
                 quiz: null,
                 userid: null,
-                token: null
+                clientid : null,
+                token: null,
+                referalCode : null
             },
             templateUrl: '/challenge.html',
             controller: 'challengeController',
@@ -66,7 +68,8 @@
                 time: null,
                 userid: null,
                 quizid: null,
-                token: null
+                token: null,
+                referalCode : null
             },
             templateUrl: '/result-animation.html',
             controller: 'resultAnimateController',
@@ -77,7 +80,8 @@
             params: {
                 userid: null,
                 leaderboard : null,
-                points : null
+                points : null,
+                referalCode : null
             },
             templateUrl: '/result.html',
             controller: 'resultController',
@@ -112,10 +116,24 @@
         homeCtrl.startChallenge = startChallenge;
         homeCtrl.getProgress = getProgress;
         homeCtrl.goBacktoMap = goBacktoMap;
+        homeCtrl.client_id = $stateParams.userid;
+        homeCtrl.shareScore = shareScore;
+
+        function shareScore(points) {
+            var sharedata = {
+                name : "share",
+                points : points,
+                referal_code : homeCtrl.referalCode
+            }
+            console.log(sharedata)
+            window.parent.postMessage(sharedata);
+        }
 
         function goBacktoMap() {
             console.log(window);
-            window.parent.postMessage('backToMap', '*');
+            window.parent.postMessage({
+                name : "backToMap"
+            });
         }
         $stateParams.accountid && $stateParams.userid && $stateParams.token && $stateParams.grade
             Rest
@@ -128,12 +146,14 @@
         Rest.getProfileId($stateParams.userid, $stateParams.token)
             .then(function(response) {
                 $stateParams.userid = response.data[0].id;
+                homeCtrl.referalCode = response.data[0].referral_code;
                 console.log($stateParams.userid)
                 Rest.getLeaderBoard($stateParams.userid, $stateParams.token)
                     .then(function(response) {
                         $scope.leaderboard = response.data;
+                        homeCtrl.points = $scope.leaderboard.leaderboard[$scope.leaderboard.profile_rank]['total_score']
                     }, function(error) {
-                        console.log(r)
+                        console.log(error)
                     })
             }, function(error) {
                 console.log(error)
@@ -141,10 +161,13 @@
         $scope.mapRank = utility.mapRank;
 
         function startChallenge(quiz) {
+            Rest.logAnalytics("start scholarship challenge", "assessment", quiz.node.id, homeCtrl.client_id, $stateParams.token)
             $state.go('challenge', {
                 quiz: quiz,
                 userid: $stateParams.userid,
-                token: $stateParams.token
+                clientid : homeCtrl.client_id,
+                token: $stateParams.token,
+                referalCode : homeCtrl.referalCode
             })
         }
 
@@ -190,7 +213,7 @@
         function setMeta(data) {
             var $btn = $('#saveBtn').button('loading')
             console.log(data)
-            
+
             Rest.setMeta(data)
                 .then(function successCallback(response) {
                     dateCtrl.meta = response.data;
@@ -299,12 +322,14 @@
             if (challengeCtrl.currentIndex < challengeCtrl.quiz.objects.length - 1) {
                 ++challengeCtrl.currentIndex
             } else {
+                Rest.logAnalytics("complete scholarship challenge", "assessment", challengeCtrl.quiz.node.id, $stateParams.clientid, $stateParams.token);
                 $state.go('resultAnimation', {
                     score: challengeCtrl.score,
                     time: challengeCtrl.getElapsedTime(true),
                     userid: $stateParams.userid,
                     quizid: challengeCtrl.quiz.node.id,
-                    token: $stateParams.token
+                    token: $stateParams.token,
+                    referalCode : $stateParams.referalCode
                 })
             }
         }
@@ -339,7 +364,8 @@
                     $state.go('result', {
                         userid: $stateParams.userid,
                         leaderboard : response.data,
-                        points : resultAnimateCtrl.points
+                        points : resultAnimateCtrl.points,
+                        referalCode : $stateParams.referalCode
                     })
                 },1000)
                 console.log(response);
@@ -361,13 +387,22 @@
         $scope.leaderboard = $stateParams.leaderboard;
         resultCtrl.shareScore = shareScore;
         resultCtrl.goBacktoMap = goBacktoMap;
-        resultCtrl.points = $stateParams.points;
+        resultCtrl.points = $scope.leaderboard.leaderboard[$scope.leaderboard.profile_rank]['total_score'];
         function goBacktoMap() {
             console.log(window);
-            window.parent.postMessage('backToMap', '*');
+
+            window.parent.postMessage({
+                name : 'backToMap'
+            });
         }
         function shareScore(points) {
-            window.parent.postMessage('share-'+points, '*');
+            var shareData = {
+                name : "share",
+                points : points,
+                referal_code : $stateParams.referalCode
+            };
+            console.log(shareData)
+            window.parent.postMessage(shareData);
         }
         $scope.mapRank = utility.mapRank;
     }
@@ -502,10 +537,47 @@
             getDates: getDates,
             setMeta: setMeta,
             getProfileId: getProfileId,
-            syncChallenge : syncChallenge
+            syncChallenge : syncChallenge,
+            logAnalytics : logAnalytics
         };
         return Rest;
 
+        function logAnalytics(verb, content_type, content_id, client_id, token) {
+            // omited data
+            /*"network": "unknown",
+                    "device": {
+                      "uuid": "kartik-asus",
+                      "model": "fake_model",
+                      "platform": "fake_platform",
+                      "version": "fake_version",
+                      "serial": "fake_serial",
+                      "manufacturer": "fake_manufacturer"
+                    },
+                    "app_version": "na",
+                    "app_type": "na"
+                    */
+            var data = {
+                  "verb": verb,
+                  "actor_content_type": "person",
+                  "action_object_content_type": content_type,
+                  "action_object_object_id": content_id,
+                  "target_content_type": "account",
+                  "data": {
+                    "time": new Date(),
+                  },
+                  "client_uid": client_id
+                };
+            console.log(JSON.stringify(data))
+            return $http({
+                url : CONSTANT.SERVER + '/activity-log/',
+                method : 'POST',
+                headers: {
+                    Authorization: 'Token ' + token
+                },
+                data : data
+            })
+        }
+        
         function syncChallenge(accountid){
             return $http({
                 url: '/sync/challenge',
@@ -571,13 +643,18 @@
         }
 
         function getLeaderBoard(userid, token) {
-            return $http({
+            var config = {
                 method: 'GET',
                 headers: {
                     'Authorization': 'Token ' + token
                 },
-                url: CONSTANT.SERVER + '/profiles/' + userid + '/leaderboard/'
-            })
+                params: {
+                    profile_id: userid,
+                },
+                url: CONSTANT.SERVER + '/leaderboard/'
+            }
+            console.log(config)
+            return $http(config)
         }
     }
 })();
