@@ -385,7 +385,8 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
         quiz.meta['total_points_earned'] = 0;
         // console.log(current_date, start_date, current_date > start_date)
         // console.log(current_date, start_date, current_date < start_date)
-        if (total_number_of_nodes >= 0 && current_date >= start_date && currentWeekIndex != index) {
+        // && currentWeekIndex != index
+        if (total_number_of_nodes >= 0 && current_date >= start_date) {
             console.log('in',current_date, start_date)
             quiz.meta['active'] = true;
             quiz.meta['total_nodes_consumed'] = total_number_of_nodes >= threshold ? threshold : total_number_of_nodes;
