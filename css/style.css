@@ -110,6 +110,7 @@ body{
   background-size: cover;
   background-position: 0 0 !important;
   background-repeat:no-repeat;
+  background-color: transparent;
   width: 175px;
   height: 56px;
 }
@@ -117,34 +118,34 @@ body{
   background-position: 100% 0 !important;
 }
 .sbtn-submit{
-  background: url('/svg/button-submit.svg');
+  background-image: url('/svg/button-submit.svg');
 }
 .sbtn-next{
-  background: url('/svg/button-blue-next.svg');
+  background-image: url('/svg/button-blue-next.svg');
 }
 .sbtn-back{
-  background: url('/svg/button-back.svg');
+  background-image: url('/svg/button-back.svg');
 }
 .sbtn-share{
-  background: url('/svg/button-share.svg');
-  width: 120px;
+  background-image: url('/svg/button-share.svg');
+  width: 117px;
   height: 38px;
 }
 .sbtn-next-small{
-  background: url('/svg/button-next-small.svg');
+  background-image: url('/svg/button-next-small.svg');
   width: 120px;
   height: 38px;
 }
 .sbtn-map-small{
-  background: url('/svg/button-map-small.svg');
+  background-image: url('/svg/button-map-small.svg');
   width: 120px;
   height: 38px;
 }
 .sbtn-quiz-yellow{
-  background: url('/svg/button-quiz-yellow.svg');
+  background-image: url('/svg/button-quiz-yellow.svg');
 }
 .sbtn-quiz{
-  background: url('/svg/button-quiz.svg');
+  background-image: url('/svg/button-quiz.svg');
   width: 156px;
   height: 50px;
 }
