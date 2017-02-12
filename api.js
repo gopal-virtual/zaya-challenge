@@ -376,20 +376,23 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
         quiz.meta['attempted'] = false;
         quiz.meta['total_points_earned'] = 0;
         // console.log(current_date, start_date, current_date > start_date)
+        // console.log(current_date, start_date, current_date < start_date)
         if (total_number_of_nodes >= 0 && current_date >= start_date) {
+            console.log('in',current_date, start_date)
             quiz.meta['active'] = true;
             quiz.meta['total_nodes_consumed'] = total_number_of_nodes >= threshold ? threshold : total_number_of_nodes;
             quiz.meta['locked'] = quiz.meta.total_nodes_consumed < threshold ? true : false;
             total_number_of_nodes = total_number_of_nodes - threshold;
         }
         else {
+            console.log('out',current_date, start_date)
             quiz.meta['total_nodes_consumed'] = 0;
             quiz.meta['active'] = false;
             quiz.meta['locked'] = true;
         }
     })
 
-    quizList[0].meta.active = !quizList[0].meta.active ? true : quizList[0].meta.active;
+    // quizList[0].meta.active = !quizList[0].meta.active ? true : quizList[0].meta.active;
     // console.log(quizList)
     return quizList;
 }
