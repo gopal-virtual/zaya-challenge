@@ -82,6 +82,11 @@ div{
 body{
     background-color: #F8E8CF;
 }
+.disabled{
+  filter: gray; /* IE6-9 */
+  filter: grayscale(1); /* Microsoft Edge and Firefox 35+ */
+  -webkit-filter: grayscale(1); 
+}
 .bg-cream {
   background-color: #F8E8CF;
 }
@@ -138,7 +143,7 @@ body{
 }
 .sbtn-map-small{
   background-image: url('/svg/button-map-small.svg');
-  width: 120px;
+  width: 118px;
   height: 38px;
 }
 .sbtn-quiz-yellow{

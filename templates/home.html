@@ -20,7 +20,7 @@
                                     <div class="panel-body" ng-show="!challenge.meta.attempted">
                                         <div class="media">
                                             <div class="media-left">
-                                                <a href="#">
+                                                <a>
                                                     <img ng-src="svg/icon-checkbox-{{challenge.meta.locked ? 'unchecked' : 'checked'}}.svg" alt="">
                                                 </a>
                                             </div>
@@ -85,7 +85,7 @@
 <!-- <div class="navbar navbar-fixed-bottom text-center padding bg-cream">
     <button class="sbtn sbtn-back" ng-click="homeCtrl.goBacktoMap()"></button>
 </div> -->
-<div class="navbar navbar-fixed-bottom text-center padding-bottom">
+<div class="navbar navbar-fixed-bottom text-center padding bg-cream">
     <button class="sbtn sbtn-map-small" ng-click="homeCtrl.goBacktoMap()"></button>
     <button ng-show="homeCtrl.showLeaderBoard" class="sbtn sbtn-share" ng-click="homeCtrl.shareScore(homeCtrl.points)" ></button>
 </div>

@@ -55,5 +55,5 @@
 </div>
 <div class="navbar navbar-fixed-bottom text-center padding-bottom">
     <!-- challengeCtrl.next() -->
-    <button class="sbtn sbtn-submit" ng-click="challengeCtrl.submit();challengeCtrl.next()"></button>
+    <button class="sbtn sbtn-submit" ng-class="{'disabled' : !challengeCtrl.canSubmit()}" ng-disabled="!challengeCtrl.canSubmit()" ng-click="challengeCtrl.submit();challengeCtrl.next()"></button>
 </div>

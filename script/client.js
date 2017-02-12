@@ -259,7 +259,12 @@
         challengeCtrl.getElapsedTime = getElapsedTime;
         challengeCtrl.answerCorrect = answerCorrect;
         challengeCtrl.selected = selected;
+        challengeCtrl.canSubmit = canSubmit;
         $scope.closeRead = closeRead;
+
+        function canSubmit(){
+            return challengeCtrl.quiz.objects[challengeCtrl.currentIndex]['selected'] ? true : false;
+        }
 
         function selected (option, question) {
             return (option.key == question.selected) && !challengeCtrl.result.hasOwnProperty(question.node.id)
@@ -439,7 +444,7 @@
                 el.owlCarousel({
                     items: 1,
                     autoplay: true,
-                    autoplayTimeout: 3000
+                    autoplayTimeout: 5000
                 });
             })
         }
@@ -467,7 +472,7 @@
                   strokeWidth: 4,
                   trailWidth: 1,
                   easing: 'easeInOut',
-                  duration: 1400,
+                  duration: 2000,
                   text: {
                     autoStyleContainer: false
                   },
