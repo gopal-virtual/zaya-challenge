@@ -369,6 +369,14 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
     var current_date = current_date ? new Date(current_date) : new Date();
     var totalPoints, totalNodes, currentIndex;
     // console.log('current_date',current_date);
+    var currentWeekIndex;
+    quizList.forEach(function(quiz,index){
+        var start_date = new Date(date_range[index].start);
+        var end_date = date_range[index+1] ? new Date(date_range[index+1].start) : new Date(date_range[index].end);
+        if(current_date >= start_date && current_date < end_date){
+            currentWeekIndex = index;
+        }
+    })
     quizList.forEach(function(quiz, index) {
         var start_date = new Date(date_range[index].start);
         quiz['meta'] = {};
@@ -377,7 +385,7 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
         quiz.meta['total_points_earned'] = 0;
         // console.log(current_date, start_date, current_date > start_date)
         // console.log(current_date, start_date, current_date < start_date)
-        if (total_number_of_nodes >= 0 && current_date >= start_date) {
+        if (total_number_of_nodes >= 0 && current_date >= start_date && currentWeekIndex != index) {
             console.log('in',current_date, start_date)
             quiz.meta['active'] = true;
             quiz.meta['total_nodes_consumed'] = total_number_of_nodes >= threshold ? threshold : total_number_of_nodes;
