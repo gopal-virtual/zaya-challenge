@@ -151,9 +151,14 @@
                 Rest.getLeaderBoard($stateParams.userid, $stateParams.token)
                     .then(function(response) {
                         $scope.leaderboard = response.data;
-                        homeCtrl.points = $scope.leaderboard.leaderboard[$scope.leaderboard.profile_rank] ? 
-                              $scope.leaderboard.leaderboard[$scope.leaderboard.profile_rank]['total_score']
-                            : 0;
+                        for (var i = $scope.leaderboard.leaderboard.length - 1; i >= 0; i--) {
+                            console.log($scope.leaderboard.leaderboard[i].rank, $scope.leaderboard.leaderboard[i]['total_score'], $scope.leaderboard.profile_rank)
+                            if($scope.leaderboard.profile_rank && ($scope.leaderboard.leaderboard[i].rank == $scope.leaderboard.profile_rank)){
+                                homeCtrl.points = $scope.leaderboard.leaderboard[i]['total_score']
+                                break;
+                            }
+                            homeCtrl.points = 0;
+                        }
                     }, function(error) {
                         console.log(error)
                     })
@@ -389,9 +394,14 @@
         $scope.leaderboard = $stateParams.leaderboard;
         resultCtrl.shareScore = shareScore;
         resultCtrl.goBacktoMap = goBacktoMap;
-        resultCtrl.points = $scope.leaderboard.leaderboard[$scope.leaderboard.profile_rank] ? 
-            $scope.leaderboard.leaderboard[$scope.leaderboard.profile_rank]['total_score']
-            : 0;
+        for (var i = $scope.leaderboard.leaderboard.length - 1; i >= 0; i--) {
+            console.log($scope.leaderboard.leaderboard[i].rank, $scope.leaderboard.leaderboard[i]['total_score'], $scope.leaderboard.profile_rank)
+            if($scope.leaderboard.profile_rank && ($scope.leaderboard.leaderboard[i].rank == $scope.leaderboard.profile_rank)){
+                resultCtrl.points = $scope.leaderboard.leaderboard[i]['total_score']
+                break;
+            }
+            resultCtrl.points = 0;
+        }
         function goBacktoMap() {
             console.log(window);
 
