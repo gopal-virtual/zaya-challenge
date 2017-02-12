@@ -379,7 +379,7 @@
                         points : resultAnimateCtrl.points,
                         referalCode : $stateParams.referalCode
                     })
-                },1000)
+                },3000)
                 console.log(response);
 
             }, function errorCallback(error) {
