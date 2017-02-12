@@ -25,7 +25,7 @@ function getChallengeList(accountid, token, callback) {
         }
     };
     request(config, function(error, response, body) {
-        console.log(config, response.statusCode)
+        // console.log(config, response.statusCode)
         if (error) {
             callback(JSON.stringify({
                 'status': 400,
@@ -81,7 +81,7 @@ function getQuizList(accountid, token, challengeList, callback){
                     Authorization: token
                 }
         };
-        console.log(config)
+        // console.log(config)
         request(config, function(error, response, body) {
             if (error) {
                 eachCallback({
@@ -368,7 +368,7 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
     var total_number_of_nodes = pointList.length;
     var current_date = current_date ? new Date(current_date) : new Date();
     var totalPoints, totalNodes, currentIndex;
-    console.log('current_date',current_date);
+    // console.log('current_date',current_date);
     quizList.forEach(function(quiz, index) {
         var start_date = new Date(date_range[index].start);
         quiz['meta'] = {};
@@ -455,6 +455,11 @@ function getFilteredQuizList(token, profileid, quizList, callback) {
     // from_date=2017-02-09&till_date=2017-02-10&action=node_complete
     utility.getMetaFile('./variables.json',function(meta){
         meta = JSON.parse(meta);
+        var start = new Date(meta.range["0"].start),
+            end = new Date(meta.range["0"].end),
+            start_date = start.toISOString().split('T')[0]+" "+start.getUTCHours()+":"+start.getUTCMinutes(),
+            end_date = end.toISOString().split('T')[0]+" "+end.getUTCHours()+":"+end.getUTCMinutes();
+
         var config = {
             uri: server+'/profiles/' + profileid + '/points/',
             method: 'GET',
@@ -462,8 +467,8 @@ function getFilteredQuizList(token, profileid, quizList, callback) {
                 Authorization: token
             },
             qs : {
-                from_date : meta.range["0"].start_date,
-                till_date : meta.range["0"].end_date,
+                from_date : start_date,
+                till_date : end_date,
                 action : 'node_complete'
             }
         }
