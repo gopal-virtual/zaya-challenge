@@ -370,25 +370,9 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
     var totalPoints, totalNodes, currentIndex;
     // console.log('current_date',current_date);
     var currentWeekIndex;
-    // quizList.forEach(function(quiz,index){
-    //     var start_date = new Date(date_range[index].start);
-    //     var end_date = date_range[index+1] ? new Date(date_range[index+1].start) : new Date(date_range[index].end);
-    //     if(current_date >= start_date && current_date < end_date){
-    //         currentWeekIndex = index;
-    //     }
-    // })
-    quizList.forEach(function(quiz, index){
-        quiz['meta'] = {};
+    quizList.forEach(function(quiz,index){
         var start_date = new Date(date_range[index].start);
         var end_date = date_range[index+1] ? new Date(date_range[index+1].start) : new Date(date_range[index].end);
-        // iterate points to check how many nodes per week
-        quiz.meta['total_nodes_consumed'] = 0;
-        pointList.forEach(function(point){
-            var pointDate = new Date(point.created);
-            if(pointDate >= start_date && pointDate < end_date){
-                quiz.meta['total_nodes_consumed']++;
-            }
-        })
         if(current_date >= start_date && current_date < end_date){
             currentWeekIndex = index;
         }
@@ -405,8 +389,7 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
         if (total_number_of_nodes >= 0 && current_date >= start_date) {
             console.log('in',current_date, start_date)
             quiz.meta['active'] = true;
-            if(currentWeekIndex != index)
-                quiz.meta['total_nodes_consumed'] = total_number_of_nodes >= threshold ? threshold : total_number_of_nodes;
+            quiz.meta['total_nodes_consumed'] = total_number_of_nodes >= threshold ? threshold : total_number_of_nodes;
             quiz.meta['locked'] = quiz.meta.total_nodes_consumed < threshold ? true : false;
             total_number_of_nodes = total_number_of_nodes - threshold;
         }
