@@ -366,8 +366,7 @@ function getDates(req, res) {
 function processQuiz(quizList, pointList, current_date, date_range, threshold) {
     // accumulate the scores and distribute, and unlock it accordingly
     var total_number_of_nodes = pointList.length;
-    var current_date = current_date == "false" ? new Date() : new Date(current_date);
-    console.log('current date', current_date)
+    var current_date = current_date == "not set" ? new Date() : new Date(current_date);
     var totalPoints, totalNodes, currentIndex;
     // console.log('current_date',current_date);
     var currentWeekIndex;
