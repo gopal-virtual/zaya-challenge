@@ -484,7 +484,7 @@ function getFilteredQuizList(token, profileid, quizList, callback) {
                 action : 'node_complete'
             }
         }
-        // console.log(config)
+        console.log(config)
         request(config, function(error, response, body) {
             if (error) {
                 callback(JSON.stringify({
