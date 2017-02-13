@@ -467,6 +467,7 @@ function getFilteredQuizList(token, profileid, quizList, callback) {
     // from_date=2017-02-09&till_date=2017-02-10&action=node_complete
     utility.getMetaFile('./variables.json',function(meta){
         meta = JSON.parse(meta);
+        console.log(meta.range["0"].start, meta.range["0"].end)
         var start = new Date(meta.range["0"].start),
             end = new Date(meta.range["0"].end),
             start_date = start.toISOString().split('T')[0]+" "+start.getUTCHours()+":"+start.getUTCMinutes(),
