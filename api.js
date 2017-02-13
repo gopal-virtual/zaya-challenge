@@ -366,7 +366,8 @@ function getDates(req, res) {
 function processQuiz(quizList, pointList, current_date, date_range, threshold) {
     // accumulate the scores and distribute, and unlock it accordingly
     var total_number_of_nodes = pointList.length;
-    var current_date = current_date ? new Date(current_date) : new Date();
+    var current_date = current_date == "false" ? new Date() : new Date(current_date);
+    console.log('current date', current_date)
     var totalPoints, totalNodes, currentIndex;
     // console.log('current_date',current_date);
     var currentWeekIndex;
@@ -387,14 +388,14 @@ function processQuiz(quizList, pointList, current_date, date_range, threshold) {
         // console.log(current_date, start_date, current_date < start_date)
         // && currentWeekIndex != index
         if (total_number_of_nodes >= 0 && current_date >= start_date) {
-            console.log('in',current_date, start_date)
+            // console.log('in',current_date, start_date)
             quiz.meta['active'] = true;
             quiz.meta['total_nodes_consumed'] = total_number_of_nodes >= threshold ? threshold : total_number_of_nodes;
             quiz.meta['locked'] = quiz.meta.total_nodes_consumed < threshold ? true : false;
             total_number_of_nodes = total_number_of_nodes - threshold;
         }
         else {
-            console.log('out',current_date, start_date)
+            // console.log('out',current_date, start_date)
             quiz.meta['total_nodes_consumed'] = 0;
             quiz.meta['active'] = false;
             quiz.meta['locked'] = true;
