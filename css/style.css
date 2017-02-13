@@ -311,6 +311,16 @@ ul.leaderboard > li.leaderboard-user.rank-third{
 ul.leaderboard > li.leaderboard-user.rank-none{
     background-color: #41A3DB;
 }
+ul.leaderboard > li.leaderboard-user.rank-none div.media-object > div {
+    width: 45px;
+    height: 45px;
+    background-color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 50px;
+    font-size: 21px;
+}
+
 li.leaderboard-user .media-object {
     height: 45px;
 }

@@ -4,7 +4,10 @@
             <div class="media">
                 <div class="media-left media-middle">
                     <a>
-                        <img class="media-object" ng-src="{{::'/svg/'+mapRank(user.rank)+'.svg'}}" alt="">
+                        <img class="media-object" ng-show="mapRank(user.rank) != 'rank-none'" ng-src="{{::'/svg/'+mapRank(user.rank)+'.svg'}}" alt="">
+                        <div class="media-object">
+                            <div ng-show="mapRank(user.rank) == 'rank-none'" ng-bind="user.rank"></div>
+                        </div>
                     </a>
                 </div>
                 <div class="media-body">
